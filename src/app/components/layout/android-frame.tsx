@@ -1,4 +1,5 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import { Link2, Check } from "lucide-react";
 
 /**
  * Realistic Android phone mockup.
@@ -6,6 +7,36 @@ import { ReactNode } from "react";
  *   Status bar: 24px  |  System nav: 48px (classic 3-button)
  *   Content area: fills between status bar and system nav
  */
+function CopyUrlButton() {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-[6px] rounded-[10px] bg-[#1c1c1c] px-[12px] py-[8px] text-[12px] font-medium text-[#999] transition-all duration-200 hover:bg-[#252525] hover:text-white active:scale-95"
+      style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.3)" }}
+    >
+      {copied ? (
+        <>
+          <Check size={14} className="text-[#34c759]" />
+          <span className="text-[#34c759]">Copied!</span>
+        </>
+      ) : (
+        <>
+          <Link2 size={14} />
+          <span>Copy URL</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 export default function AndroidFrame({ children }: { children: ReactNode }) {
   return (
     <div className="flex size-full items-center justify-center bg-[#0e0e0e] font-['Inclusive_Sans',sans-serif]">
@@ -144,6 +175,11 @@ export default function AndroidFrame({ children }: { children: ReactNode }) {
             background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent)",
           }}
         />
+      </div>
+
+      {/* Copy URL button */}
+      <div className="mt-[16px] flex justify-center">
+        <CopyUrlButton />
       </div>
     </div>
   );

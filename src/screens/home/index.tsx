@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { useState } from "react";
+import { Link2, Check } from "lucide-react";
 
 type Screen = {
   path: string;
@@ -97,6 +98,38 @@ const STATUS_STYLES = {
   },
 };
 
+function CopyUrlButton({ path }: { path: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const url = `${window.location.origin}${path}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-[4px] rounded-[8px] bg-[#f5f5f4] px-[8px] py-[4px] text-[11px] font-medium text-[#949493] transition-all duration-200 hover:bg-[#eaeae9] hover:text-[#545352] active:scale-95"
+    >
+      {copied ? (
+        <>
+          <Check size={12} className="text-[#34c759]" />
+          <span className="text-[#34c759]">Copied</span>
+        </>
+      ) : (
+        <>
+          <Link2 size={12} />
+          <span>Copy URL</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 function ScreenCard({ screen }: { screen: Screen }) {
   const status = STATUS_STYLES[screen.status];
   return (
@@ -145,19 +178,7 @@ function ScreenCard({ screen }: { screen: Screen }) {
           <span className="rounded-[6px] bg-[#f5f5f4] px-[6px] py-[2px] font-mono text-[10px] text-[#b4b4b3]">
             {screen.path}
           </span>
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#b4b4b3"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="transition-all duration-200 group-hover:translate-x-[2px] group-hover:stroke-[#ff6733]"
-          >
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          <CopyUrlButton path={screen.path} />
         </div>
       </div>
     </Link>
