@@ -1,114 +1,337 @@
 import { Link } from "react-router";
+import { useState } from "react";
 
 type Screen = {
   path: string;
   title: string;
   description: string;
   status: "done" | "wip" | "planned";
+  thumbnail?: string;
 };
 
-const SCREENS: Screen[] = [
+type Flow = {
+  id: string;
+  label: string;
+  description: string;
+  color: string;
+  screens: Screen[];
+};
+
+const FLOWS: Flow[] = [
   {
-    path: "/dashboard",
-    title: "Home (Dashboard)",
-    description: "Landing view with active trip banner, upcoming trips grid, and quick-action navigation.",
-    status: "done",
+    id: "organizer",
+    label: "Flow A — Organizer Planning",
+    description:
+      "Dashboard → Trip → Session Overview → Explore → Save to Library",
+    color: "#ff6733",
+    screens: [
+      {
+        path: "/dashboard",
+        title: "Dashboard",
+        description: "Active trip banner, upcoming trips, quick actions.",
+        status: "done",
+        thumbnail:
+          "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=400&h=800&fit=crop&crop=center",
+      },
+      {
+        path: "/session-overview",
+        title: "Session Overview",
+        description: "Trip planning with map, timeline, saved places.",
+        status: "done",
+        thumbnail:
+          "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&h=800&fit=crop&crop=center",
+      },
+      {
+        path: "/session-overview/timeline",
+        title: "Timeline Tab",
+        description: "Day-by-day schedule with event cards and day picker.",
+        status: "done",
+        thumbnail:
+          "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=400&h=800&fit=crop&crop=center",
+      },
+      {
+        path: "/explore",
+        title: "Explore Map",
+        description: "Search, filters, interactive pins, location sheets.",
+        status: "done",
+        thumbnail:
+          "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&h=800&fit=crop&crop=center",
+      },
+    ],
   },
   {
-    path: "/session-overview",
-    title: "Session Overview",
-    description: "Trip planning screen with map, timeline, saved places, and collaborative features.",
-    status: "done",
-  },
-  {
-    path: "/session-overview/timeline",
-    title: "Timeline Tab",
-    description: "Day-by-day trip schedule with time periods, event cards, and day picker navigation.",
-    status: "done",
-  },
-  {
-    path: "/explore",
-    title: "Explore Map",
-    description: "Discovery map with search, category filters, interactive pins, and location info sheet.",
-    status: "done",
-  },
-  {
-    path: "/session/active/library",
-    title: "Shared Session Library",
-    description: "Consensus UI with upvote/downvote voting, comments, and sorting for group trip planning.",
-    status: "done",
-  },
-  {
-    path: "/session/active/map",
-    title: "Session Map",
-    description: "Trip visualization with route lines, day filters, itinerary list, and real-time location sharing.",
-    status: "done",
+    id: "participant",
+    label: "Flow B — Participant Consensus",
+    description: "Library → Upvote places → Session Map → View routes by day",
+    color: "#6366f1",
+    screens: [
+      {
+        path: "/session/active/library",
+        title: "Session Library",
+        description: "Upvote/downvote voting, comments, group consensus.",
+        status: "done",
+        thumbnail:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=800&fit=crop&crop=center",
+      },
+      {
+        path: "/session/active/map",
+        title: "Session Map",
+        description: "Route lines, day filters, itinerary, live locations.",
+        status: "done",
+        thumbnail:
+          "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=400&h=800&fit=crop&crop=center",
+      },
+    ],
   },
 ];
 
+const ALL_SCREENS = FLOWS.flatMap((f) => f.screens);
+
 const STATUS_STYLES = {
-  done: { bg: "bg-[#34c759]/10", text: "text-[#34c759]", label: "Done" },
-  wip: { bg: "bg-[#ffb830]/10", text: "text-[#ffb830]", label: "WIP" },
-  planned: { bg: "bg-[#949493]/10", text: "text-[#949493]", label: "Planned" },
+  done: { bg: "bg-[#34c759]/10", text: "text-[#34c759]", dot: "bg-[#34c759]" },
+  wip: { bg: "bg-[#ffb830]/10", text: "text-[#ffb830]", dot: "bg-[#ffb830]" },
+  planned: {
+    bg: "bg-[#949493]/10",
+    text: "text-[#949493]",
+    dot: "bg-[#949493]",
+  },
 };
 
-export default function HomeScreen() {
+function ScreenCard({ screen }: { screen: Screen }) {
+  const status = STATUS_STYLES[screen.status];
   return (
-    <div className="flex min-h-screen items-start justify-center bg-[#f0eeeb] px-[24px] py-[48px] font-['Inclusive_Sans',sans-serif]">
-      <div className="w-full max-w-[720px]">
-        {/* Header */}
-        <div className="mb-[32px]">
-          <div className="mb-[8px] flex items-center gap-[10px]">
+    <Link
+      to={screen.path}
+      className="group relative flex flex-col overflow-hidden rounded-[16px] bg-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg active:scale-[0.98]"
+      style={{
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06)",
+      }}
+    >
+      {/* Thumbnail */}
+      <div className="relative h-[140px] w-full overflow-hidden bg-[#eaeae9]">
+        {screen.thumbnail && (
+          <img
+            src={screen.thumbnail}
+            alt=""
+            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        {/* Status pill */}
+        <div
+          className={`absolute top-[10px] right-[10px] flex items-center gap-[4px] rounded-full px-[8px] py-[3px] backdrop-blur-sm ${status.bg}`}
+          style={{ background: "rgba(255,255,255,0.85)" }}
+        >
+          <div className={`size-[6px] rounded-full ${status.dot}`} />
+          <span className={`text-[10px] font-semibold ${status.text}`}>
+            {screen.status === "done"
+              ? "Done"
+              : screen.status === "wip"
+                ? "WIP"
+                : "Planned"}
+          </span>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="flex flex-1 flex-col p-[14px]">
+        <p className="text-[14px] font-semibold leading-[18px] text-[#292827] transition-colors group-hover:text-[#ff6733]">
+          {screen.title}
+        </p>
+        <p className="mt-[4px] flex-1 text-[12px] leading-[16px] text-[#949493]">
+          {screen.description}
+        </p>
+        <div className="mt-[8px] flex items-center justify-between">
+          <span className="rounded-[6px] bg-[#f5f5f4] px-[6px] py-[2px] font-mono text-[10px] text-[#b4b4b3]">
+            {screen.path}
+          </span>
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#b4b4b3"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="transition-all duration-200 group-hover:translate-x-[2px] group-hover:stroke-[#ff6733]"
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function FlowArrow() {
+  return (
+    <div className="flex shrink-0 items-center self-center px-[2px]">
+      <svg
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#b4b4b3"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="hidden sm:block"
+      >
+        <line x1="5" y1="12" x2="19" y2="12" />
+        <polyline points="12 5 19 12 12 19" />
+      </svg>
+    </div>
+  );
+}
+
+export default function HomeScreen() {
+  const [view, setView] = useState<"flows" | "all">("flows");
+  const doneCount = ALL_SCREENS.filter((s) => s.status === "done").length;
+
+  return (
+    <div className="flex min-h-screen justify-center bg-[#f0eeeb] font-['Inclusive_Sans',sans-serif]">
+      <div className="w-full max-w-[960px] px-[24px] py-[48px]">
+        {/* ─── Hero ─── */}
+        <div className="mb-[40px]">
+          <div className="mb-[12px] flex items-center gap-[12px]">
             <div
-              className="flex size-[40px] items-center justify-center rounded-[12px] bg-gradient-to-br from-[#ff6733] to-[#ff8f66]"
-              style={{ boxShadow: "0 2px 10px rgba(255,103,51,0.3)" }}
+              className="flex size-[48px] items-center justify-center rounded-[14px] bg-gradient-to-br from-[#ff6733] to-[#ff8f66]"
+              style={{ boxShadow: "0 4px 16px rgba(255,103,51,0.3)" }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
             </div>
-            <h1 className="text-[28px] font-semibold leading-[34px] tracking-[-0.5px] text-[#292827]">
-              Rally Design
-            </h1>
+            <div>
+              <h1 className="text-[32px] font-semibold leading-[38px] tracking-[-0.5px] text-[#292827]">
+                Rally Design
+              </h1>
+              <p className="mt-[2px] text-[14px] leading-[20px] text-[#949493]">
+                Mobile screen showcase
+              </p>
+            </div>
           </div>
-          <p className="text-[15px] leading-[22px] text-[#949493]">
-            Screen design showcase &mdash; {SCREENS.length} screen{SCREENS.length !== 1 ? "s" : ""}
-          </p>
+
+          {/* Stats row */}
+          <div className="mt-[20px] flex flex-wrap items-center gap-[12px]">
+            <div
+              className="flex items-center gap-[6px] rounded-full bg-white/80 px-[14px] py-[6px] backdrop-blur-sm"
+              style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+            >
+              <div className="size-[8px] rounded-full bg-[#34c759]" />
+              <span className="text-[13px] font-medium text-[#545352]">
+                {doneCount}/{ALL_SCREENS.length} screens done
+              </span>
+            </div>
+            <div
+              className="flex items-center gap-[6px] rounded-full bg-white/80 px-[14px] py-[6px] backdrop-blur-sm"
+              style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+            >
+              <span className="text-[13px] font-medium text-[#545352]">
+                {FLOWS.length} user flows
+              </span>
+            </div>
+            {/* Progress bar */}
+            <div className="ml-auto hidden items-center gap-[8px] sm:flex">
+              <div className="h-[6px] w-[120px] overflow-hidden rounded-full bg-[#eaeae9]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#ff6733] to-[#ff8f66] transition-all duration-500"
+                  style={{
+                    width: `${(doneCount / ALL_SCREENS.length) * 100}%`,
+                  }}
+                />
+              </div>
+              <span className="text-[12px] font-medium text-[#b4b4b3]">
+                {Math.round((doneCount / ALL_SCREENS.length) * 100)}%
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Screen Grid */}
-        <div className="flex flex-col gap-[12px]">
-          {SCREENS.map((screen) => {
-            const status = STATUS_STYLES[screen.status];
-            return (
-              <Link
-                key={screen.path}
-                to={screen.path}
-                className="group flex items-center gap-[16px] rounded-[16px] bg-white px-[20px] py-[18px] transition-all duration-200 hover:shadow-md active:scale-[0.99]"
-                style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)" }}
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-[8px]">
-                    <p className="text-[16px] font-semibold leading-[22px] text-[#292827] group-hover:text-[#ff6733] transition-colors duration-200">
-                      {screen.title}
+        {/* ─── View Toggle ─── */}
+        <div
+          className="mb-[24px] flex w-fit items-center gap-[4px] rounded-[10px] bg-white/60 p-[3px] backdrop-blur-sm"
+          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+        >
+          {(["flows", "all"] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`rounded-[8px] px-[14px] py-[6px] text-[13px] font-medium transition-all duration-200 ${
+                view === v
+                  ? "bg-white text-[#292827] shadow-sm"
+                  : "text-[#949493] hover:text-[#545352]"
+              }`}
+            >
+              {v === "flows" ? "By Flow" : "All Screens"}
+            </button>
+          ))}
+        </div>
+
+        {/* ─── Flow View ─── */}
+        {view === "flows" && (
+          <div className="flex flex-col gap-[32px]">
+            {FLOWS.map((flow) => (
+              <section key={flow.id}>
+                {/* Flow header */}
+                <div className="mb-[16px] flex items-start gap-[10px]">
+                  <div
+                    className="mt-[4px] size-[10px] shrink-0 rounded-full"
+                    style={{ background: flow.color }}
+                  />
+                  <div>
+                    <h2 className="text-[16px] font-semibold leading-[20px] text-[#292827]">
+                      {flow.label}
+                    </h2>
+                    <p className="mt-[2px] text-[13px] leading-[18px] text-[#949493]">
+                      {flow.description}
                     </p>
-                    <div className={`rounded-full px-[8px] py-[2px] ${status.bg}`}>
-                      <p className={`text-[11px] font-semibold ${status.text}`}>{status.label}</p>
-                    </div>
                   </div>
-                  <p className="mt-[4px] text-[13px] leading-[18px] text-[#949493]">
-                    {screen.description}
-                  </p>
-                  <p className="mt-[6px] text-[12px] font-medium leading-[16px] text-[#b4b4b3]">
-                    {screen.path}
-                  </p>
                 </div>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b4b4b3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 transition-transform duration-200 group-hover:translate-x-[2px] group-hover:stroke-[#ff6733]">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </Link>
-            );
-          })}
+
+                {/* Screen cards in a flow row */}
+                <div className="flex gap-[8px] overflow-x-auto pb-[4px] sm:gap-[12px]">
+                  {flow.screens.map((screen, i) => (
+                    <div
+                      key={screen.path}
+                      className="flex items-stretch gap-[8px] sm:gap-[12px]"
+                    >
+                      <div className="w-[200px] shrink-0 sm:w-[220px]">
+                        <ScreenCard screen={screen} />
+                      </div>
+                      {i < flow.screens.length - 1 && <FlowArrow />}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+
+        {/* ─── All Screens Grid ─── */}
+        {view === "all" && (
+          <div className="grid grid-cols-2 gap-[16px] sm:grid-cols-3">
+            {ALL_SCREENS.map((screen) => (
+              <ScreenCard key={screen.path} screen={screen} />
+            ))}
+          </div>
+        )}
+
+        {/* ─── Footer ─── */}
+        <div className="mt-[48px] border-t border-[#e0dfdd] pt-[20px]">
+          <p className="text-center text-[12px] text-[#b4b4b3]">
+            Built with React + TypeScript + Tailwind CSS
+          </p>
         </div>
       </div>
     </div>
