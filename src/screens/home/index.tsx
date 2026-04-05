@@ -7,7 +7,6 @@ type Screen = {
   title: string;
   description: string;
   status: "done" | "wip" | "planned";
-  thumbnail?: string;
 };
 
 type Flow = {
@@ -23,40 +22,32 @@ const FLOWS: Flow[] = [
     id: "organizer",
     label: "Flow A — Organizer Planning",
     description:
-      "Dashboard → Trip → Session Overview → Explore → Save to Library",
+      "Home → Trip → Session Overview → Explore → Save to Library",
     color: "#ff6733",
     screens: [
       {
         path: "/dashboard",
-        title: "Dashboard",
+        title: "Home",
         description: "Active trip banner, upcoming trips, quick actions.",
         status: "done",
-        thumbnail:
-          "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?w=400&h=800&fit=crop&crop=center",
       },
       {
         path: "/session-overview",
         title: "Session Overview",
         description: "Trip planning with map, timeline, saved places.",
         status: "done",
-        thumbnail:
-          "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400&h=800&fit=crop&crop=center",
       },
       {
         path: "/session-overview/timeline",
         title: "Timeline Tab",
         description: "Day-by-day schedule with event cards and day picker.",
         status: "done",
-        thumbnail:
-          "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=400&h=800&fit=crop&crop=center",
       },
       {
         path: "/explore",
         title: "Explore Map",
         description: "Search, filters, interactive pins, location sheets.",
         status: "done",
-        thumbnail:
-          "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=400&h=800&fit=crop&crop=center",
       },
     ],
   },
@@ -71,16 +62,12 @@ const FLOWS: Flow[] = [
         title: "Session Library",
         description: "Upvote/downvote voting, comments, group consensus.",
         status: "done",
-        thumbnail:
-          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=800&fit=crop&crop=center",
       },
       {
         path: "/session/active/map",
         title: "Session Map",
         description: "Route lines, day filters, itinerary, live locations.",
         status: "done",
-        thumbnail:
-          "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=400&h=800&fit=crop&crop=center",
       },
     ],
   },
@@ -135,25 +122,17 @@ function ScreenCard({ screen }: { screen: Screen }) {
   return (
     <Link
       to={screen.path}
-      className="group relative flex flex-col overflow-hidden rounded-[16px] bg-white transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg active:scale-[0.98]"
+      className="group flex flex-col rounded-[14px] bg-white p-[14px] transition-all duration-300 hover:-translate-y-[2px] hover:shadow-lg active:scale-[0.98]"
       style={{
-        boxShadow: "0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.06)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)",
       }}
     >
-      {/* Thumbnail */}
-      <div className="relative h-[140px] w-full overflow-hidden bg-[#eaeae9]">
-        {screen.thumbnail && (
-          <img
-            src={screen.thumbnail}
-            alt=""
-            className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-        {/* Status pill */}
+      <div className="flex items-center justify-between">
+        <p className="text-[14px] font-semibold leading-[18px] text-[#292827] transition-colors group-hover:text-[#ff6733]">
+          {screen.title}
+        </p>
         <div
-          className={`absolute top-[10px] right-[10px] flex items-center gap-[4px] rounded-full px-[8px] py-[3px] backdrop-blur-sm ${status.bg}`}
-          style={{ background: "rgba(255,255,255,0.85)" }}
+          className={`flex items-center gap-[4px] rounded-full px-[8px] py-[3px] ${status.bg}`}
         >
           <div className={`size-[6px] rounded-full ${status.dot}`} />
           <span className={`text-[10px] font-semibold ${status.text}`}>
@@ -165,21 +144,14 @@ function ScreenCard({ screen }: { screen: Screen }) {
           </span>
         </div>
       </div>
-
-      {/* Info */}
-      <div className="flex flex-1 flex-col p-[14px]">
-        <p className="text-[14px] font-semibold leading-[18px] text-[#292827] transition-colors group-hover:text-[#ff6733]">
-          {screen.title}
-        </p>
-        <p className="mt-[4px] flex-1 text-[12px] leading-[16px] text-[#949493]">
-          {screen.description}
-        </p>
-        <div className="mt-[8px] flex items-center justify-between">
-          <span className="rounded-[6px] bg-[#f5f5f4] px-[6px] py-[2px] font-mono text-[10px] text-[#b4b4b3]">
-            {screen.path}
-          </span>
-          <CopyUrlButton path={screen.path} />
-        </div>
+      <p className="mt-[6px] flex-1 text-[12px] leading-[16px] text-[#949493]">
+        {screen.description}
+      </p>
+      <div className="mt-[10px] flex items-center justify-between">
+        <span className="rounded-[6px] bg-[#f5f5f4] px-[6px] py-[2px] font-mono text-[10px] text-[#b4b4b3]">
+          {screen.path}
+        </span>
+        <CopyUrlButton path={screen.path} />
       </div>
     </Link>
   );
