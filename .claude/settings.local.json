@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx vite:*)",
+      "mcp__plugin_figma_figma__generate_figma_design",
+      "Bash(open:*)",
+      "mcp__plugin_figma_figma__use_figma",
+      "Bash(for path:*)",
+      "Bash(do echo:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:5174$path\")",
+      "Bash(done)",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:5174/dashboard\")",
+      "Bash(/usr/bin/curl -s -o /dev/null -w \"%{http_code}\" \"http://localhost:5174/session-overview\")",
+      "Bash(for f:*)",
+      "Read(//Users/mac/Desktop/rally-design/src/screens/$f/**)",
+      "mcp__plugin_figma_figma__get_design_context",
+      "mcp__plugin_figma_figma__get_screenshot"
+    ]
+  }
+}
