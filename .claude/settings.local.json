@@ -14,7 +14,9 @@
       "Bash(for f:*)",
       "Read(//Users/mac/Desktop/rally-design/src/screens/$f/**)",
       "mcp__plugin_figma_figma__get_design_context",
-      "mcp__plugin_figma_figma__get_screenshot"
+      "mcp__plugin_figma_figma__get_screenshot",
+      "Bash(export PATH=\"$HOME/.nvm/versions/node/v24.14.1/bin:$PATH\")",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }

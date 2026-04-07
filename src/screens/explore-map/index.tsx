@@ -1,11 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Navigation } from "lucide-react";
+import { Navigation, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import AndroidFrame from "../../app/components/layout/android-frame";
 import PhoneFrame from "../../app/components/layout/phone-frame";
-import type { MapPlace, MapLayers } from "./types";
-import { CATEGORIES, PLACES, FRIENDS } from "./data";
+import type { MapPlace, MapLayers, BottomSheetSnap, BottomSheetTab } from "./types";
+import {
+  CATEGORIES,
+  PLACES,
+  FRIENDS,
+  EXPLORE_SECTIONS,
+  SAVED_COLLECTIONS,
+  RALLY_SESSIONS,
+  WEATHER_DETAIL,
+  LEADERBOARD,
+} from "./data";
 import SearchBar from "./components/search-bar";
 import CategoryChips from "./components/category-chips";
 import ExploreMapBg from "./components/explore-map-bg";
@@ -15,6 +24,12 @@ import SaveDestinationPicker from "./components/save-destination-picker";
 import MapLayersPanel from "./components/map-layers-panel";
 import FriendMarkers from "./components/friend-markers";
 import WeatherOverlay from "./components/weather-overlay";
+import BottomSheet from "./components/bottom-sheet/bottom-sheet";
+import ExploreTab from "./components/bottom-sheet/explore-tab";
+import SavedTab from "./components/bottom-sheet/saved-tab";
+import AddPlacesTab from "./components/bottom-sheet/add-places-tab";
+import WeatherModal from "./components/weather-modal";
+import LeaderboardPanel from "./components/leaderboard-panel";
 
 export default function ExploreMapScreen() {
   const navigate = useNavigate();
@@ -36,6 +51,17 @@ export default function ExploreMapScreen() {
     friends: false,
   });
   const [sharingLocation, setSharingLocation] = useState(false);
+
+  // Bottom sheet state
+  const [sheetSnap, setSheetSnap] = useState<BottomSheetSnap>("half");
+  const [sheetTab, setSheetTab] = useState<BottomSheetTab>("explore");
+
+  // Explore tab card saves
+  const [exploreSections, setExploreSections] = useState(EXPLORE_SECTIONS);
+
+  // Modals
+  const [showWeatherModal, setShowWeatherModal] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   const toggleLayer = (layer: keyof MapLayers) => {
     setLayers((prev) => ({ ...prev, [layer]: !prev[layer] }));
@@ -85,11 +111,37 @@ export default function ExploreMapScreen() {
     setSavingPlaceId(null);
   };
 
+  const handleExploreCardSave = (cardId: string) => {
+    setExploreSections((prev) =>
+      prev.map((section) => ({
+        ...section,
+        cards: section.cards.map((card) =>
+          card.id === cardId ? { ...card, saved: !card.saved } : card
+        ),
+      }))
+    );
+    const card = exploreSections.flatMap((s) => s.cards).find((c) => c.id === cardId);
+    if (card) {
+      toast[card.saved ? "info" : "success"](
+        card.saved ? `Removed "${card.name}"` : `Saved "${card.name}"`
+      );
+    }
+  };
+
+  const handleTrendingOnMaps = () => {
+    setActiveCategory("trending");
+    setSheetSnap("collapsed");
+    toast.success("Showing trending places on map");
+  };
+
+  // Get saved cards for the saved tab
+  const savedCards = exploreSections.flatMap((s) => s.cards).filter((c) => c.saved);
+
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <AndroidFrame>
       <PhoneFrame activeTab="explore" showHeader={false} showBottomNav={!selectedPlace}>
-        <div className="relative size-full">
+        <div className="relative size-full overflow-hidden">
           {/* Map background with layers */}
           <div className="absolute inset-0 bg-[#e8e4df]">
             <ExploreMapBg layers={layers} />
@@ -136,14 +188,52 @@ export default function ExploreMapScreen() {
             />
           )}
 
-          {/* Current location FAB */}
+          {/* Right-side FABs */}
           {!selectedPlace && (
-            <button
-              className="absolute bottom-[16px] right-[16px] z-20 flex size-[44px] items-center justify-center rounded-full bg-white transition-all active:scale-95"
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}
+            <div className="absolute right-[16px] z-20 flex flex-col gap-[8px]" style={{ bottom: sheetSnap === "collapsed" ? 96 : sheetSnap === "half" ? 356 : 596 , transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
+              {/* Leaderboard FAB */}
+              <button
+                onClick={() => setShowLeaderboard(true)}
+                className="flex size-[44px] items-center justify-center rounded-full bg-white transition-all active:scale-95"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}
+              >
+                <Trophy size={20} className="text-[#f59e0b]" strokeWidth={2} />
+              </button>
+              {/* Current location FAB */}
+              <button
+                className="flex size-[44px] items-center justify-center rounded-full bg-white transition-all active:scale-95"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}
+              >
+                <Navigation size={20} className="text-[#ff6733]" strokeWidth={2} />
+              </button>
+            </div>
+          )}
+
+          {/* Bottom Sheet (hidden when place detail is open) */}
+          {!selectedPlace && (
+            <BottomSheet
+              activeTab={sheetTab}
+              onTabChange={setSheetTab}
+              snap={sheetSnap}
+              onSnapChange={setSheetSnap}
+              onWeatherTap={() => setShowWeatherModal(true)}
             >
-              <Navigation size={20} className="text-[#ff6733]" strokeWidth={2} />
-            </button>
+              {sheetTab === "explore" && (
+                <ExploreTab
+                  sections={exploreSections}
+                  onSaveCard={handleExploreCardSave}
+                  onTrendingOnMaps={handleTrendingOnMaps}
+                />
+              )}
+              {sheetTab === "saved" && (
+                <SavedTab
+                  collections={SAVED_COLLECTIONS}
+                  savedPlaces={savedCards}
+                  sessions={RALLY_SESSIONS}
+                />
+              )}
+              {sheetTab === "add" && <AddPlacesTab />}
+            </BottomSheet>
           )}
 
           {/* Place detail bottom sheet */}
@@ -162,6 +252,22 @@ export default function ExploreMapScreen() {
               placeName={places.find((p) => p.id === savingPlaceId)?.name ?? ""}
               onClose={() => { setShowSavePicker(false); setSavingPlaceId(null); }}
               onSave={handleSaveConfirm}
+            />
+          )}
+
+          {/* Weather modal */}
+          {showWeatherModal && (
+            <WeatherModal
+              weather={WEATHER_DETAIL}
+              onClose={() => setShowWeatherModal(false)}
+            />
+          )}
+
+          {/* Leaderboard panel */}
+          {showLeaderboard && (
+            <LeaderboardPanel
+              entries={LEADERBOARD}
+              onClose={() => setShowLeaderboard(false)}
             />
           )}
         </div>

@@ -9,7 +9,18 @@ import {
   ShoppingBag,
   Building2,
 } from "lucide-react";
-import type { MapPlace, Category, Review, WeatherInfo, FriendLocation } from "./types";
+import type {
+  MapPlace,
+  Category,
+  Review,
+  WeatherInfo,
+  FriendLocation,
+  ExploreSection,
+  SavedCollection,
+  RallySession,
+  WeatherDetail,
+  LeaderboardEntry,
+} from "./types";
 
 // ─── Categories ─────────────────────────────────────────────────────────────
 export const CATEGORIES: Category[] = [
@@ -237,4 +248,164 @@ export const FRIENDS: FriendLocation[] = [
   { id: "f1", name: "Sarah", avatar: "#7c3aed", initial: "S", x: 55, y: 42, status: "Exploring nearby" },
   { id: "f2", name: "Tom", avatar: "#22c55e", initial: "T", x: 30, y: 30, status: "At hotel" },
   { id: "f3", name: "Mai", avatar: "#ec4899", initial: "M", x: 70, y: 55, status: "Having lunch" },
+];
+
+// ─── Explore Sections (Bottom Sheet Discovery) ────────────────────────────
+
+export const EXPLORE_SECTIONS: ExploreSection[] = [
+  {
+    id: "trending",
+    title: "Trending Places",
+    subtitle: "Popular spots this week",
+    cards: [
+      { id: "e1", name: "Dragon Bridge", category: "Attraction", img: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.4, reviewCount: 2340, priceLevel: "Free", distance: "1.2 km", openClose: "Open 24h", saved: false, trending: true },
+      { id: "e2", name: "My Khe Beach", category: "Park", img: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.5, reviewCount: 5120, priceLevel: "Free", distance: "2.4 km", openClose: "Open 24h", saved: false, trending: true },
+      { id: "e3", name: "Marble Mountains", category: "Attraction", img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.7, reviewCount: 3892, priceLevel: "$", distance: "5.1 km", openClose: "7AM - 5:30PM", saved: true, trending: true },
+      { id: "e4", name: "Ba Na Hills", category: "Attraction", img: "https://images.unsplash.com/photo-1528127269322-539801943592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 4210, priceLevel: "$$", distance: "25 km", openClose: "7AM - 10PM", saved: false, trending: true },
+      { id: "e5", name: "Son Tra Peninsula", category: "Park", img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.8, reviewCount: 1560, priceLevel: "Free", distance: "8.3 km", openClose: "Open 24h", saved: false, trending: true },
+    ],
+  },
+  {
+    id: "eat",
+    title: "Where to Eat",
+    subtitle: "Top-rated restaurants nearby",
+    cards: [
+      { id: "e6", name: "Be Man Seafood", category: "Restaurant", img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 1247, priceLevel: "$$", distance: "0.8 km", openClose: "10AM - 10PM", saved: false },
+      { id: "e7", name: "Mi Quang Ba Mua", category: "Restaurant", img: "https://images.unsplash.com/photo-1555126634-323283e090fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.5, reviewCount: 890, priceLevel: "$", distance: "1.5 km", openClose: "6AM - 9PM", saved: false },
+      { id: "e8", name: "Banh Xeo Ba Duong", category: "Restaurant", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.7, reviewCount: 2100, priceLevel: "$", distance: "2.1 km", openClose: "10AM - 9PM", saved: true },
+      { id: "e9", name: "Hai San Pho", category: "Restaurant", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.3, reviewCount: 560, priceLevel: "$$", distance: "3.2 km", openClose: "11AM - 11PM", saved: false },
+      { id: "e10", name: "Com Ga A Hai", category: "Restaurant", img: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.4, reviewCount: 730, priceLevel: "$", distance: "1.8 km", openClose: "7AM - 8PM", saved: false },
+    ],
+  },
+  {
+    id: "play",
+    title: "Where to Play",
+    subtitle: "Fun activities & entertainment",
+    cards: [
+      { id: "e11", name: "Asia Park", category: "Attraction", img: "https://images.unsplash.com/photo-1513106580091-1d82408b8cd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.3, reviewCount: 1890, priceLevel: "$$", distance: "3.5 km", openClose: "3PM - 10PM", saved: false },
+      { id: "e12", name: "Surf Shack Da Nang", category: "Park", img: "https://images.unsplash.com/photo-1502680390548-bdbac40b3e1c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 340, priceLevel: "$$", distance: "2.8 km", openClose: "6AM - 6PM", saved: false },
+      { id: "e13", name: "Hoi An Old Town", category: "Attraction", img: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.9, reviewCount: 8200, priceLevel: "$", distance: "30 km", openClose: "Open 24h", saved: true },
+      { id: "e14", name: "Cham Islands Diving", category: "Park", img: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.7, reviewCount: 420, priceLevel: "$$$", distance: "18 km", openClose: "7AM - 4PM", saved: false },
+      { id: "e15", name: "Vinpearl Land", category: "Attraction", img: "https://images.unsplash.com/photo-1513106580091-1d82408b8cd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.2, reviewCount: 3100, priceLevel: "$$$", distance: "12 km", openClose: "9AM - 9PM", saved: false },
+    ],
+  },
+  {
+    id: "community",
+    title: "Community Recommends",
+    subtitle: "Loved by fellow travelers",
+    cards: [
+      { id: "e16", name: "Lady Buddha Temple", category: "Attraction", img: "https://images.unsplash.com/photo-1528127269322-539801943592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.8, reviewCount: 6700, priceLevel: "Free", distance: "9.2 km", openClose: "5AM - 9PM", saved: false },
+      { id: "e17", name: "The Espresso Station", category: "Cafe", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.5, reviewCount: 280, priceLevel: "$", distance: "0.5 km", openClose: "7AM - 10PM", saved: false },
+      { id: "e18", name: "Non Nuoc Stone Village", category: "Shopping", img: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.4, reviewCount: 920, priceLevel: "$", distance: "5.5 km", openClose: "8AM - 5PM", saved: false },
+      { id: "e19", name: "Han River Night Market", category: "Shopping", img: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.3, reviewCount: 1500, priceLevel: "$", distance: "1.1 km", openClose: "6PM - 11PM", saved: true },
+      { id: "e20", name: "Pheva Chocolate", category: "Shopping", img: "https://images.unsplash.com/photo-1481391319762-47dff72954d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 380, priceLevel: "$$", distance: "28 km", openClose: "8AM - 9PM", saved: false },
+    ],
+  },
+  {
+    id: "stay",
+    title: "Where to Stay",
+    subtitle: "Best accommodations nearby",
+    cards: [
+      { id: "e21", name: "Hyatt Regency Da Nang", category: "Hotel", img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.7, reviewCount: 2300, priceLevel: "$$$", distance: "4.2 km", openClose: "Check-in 3PM", saved: false, avgPrice: "$180/night" },
+      { id: "e22", name: "Naman Retreat", category: "Hotel", img: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.8, reviewCount: 1450, priceLevel: "$$$$", distance: "7.8 km", openClose: "Check-in 2PM", saved: false, avgPrice: "$320/night" },
+      { id: "e23", name: "Fivitel Danang", category: "Hotel", img: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.5, reviewCount: 870, priceLevel: "$$", distance: "1.5 km", openClose: "Check-in 2PM", saved: false, avgPrice: "$95/night" },
+      { id: "e24", name: "Memory Hostel", category: "Hotel", img: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 560, priceLevel: "$", distance: "0.9 km", openClose: "Check-in 1PM", saved: false, avgPrice: "$25/night" },
+      { id: "e25", name: "Shilla Monogram", category: "Hotel", img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.9, reviewCount: 1900, priceLevel: "$$$$", distance: "3.1 km", openClose: "Check-in 3PM", saved: false, avgPrice: "$450/night" },
+    ],
+  },
+];
+
+// ─── Saved Collections ─────────────────────────────────────────────────────
+
+export const SAVED_COLLECTIONS: SavedCollection[] = [
+  { id: "c1", name: "Da Nang Favorites", coverImg: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", count: 12, updatedAt: "2 days ago" },
+  { id: "c2", name: "Must-Try Food", coverImg: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", count: 8, updatedAt: "1 week ago" },
+  { id: "c3", name: "Beach Spots", coverImg: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", count: 5, updatedAt: "3 days ago" },
+  { id: "c4", name: "Photo Locations", coverImg: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", count: 15, updatedAt: "Yesterday" },
+];
+
+// ─── Rally Sessions ────────────────────────────────────────────────────────
+
+const RALLY_AVATARS = [
+  "https://images.unsplash.com/photo-1569913486515-b74bf7751574?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200",
+  "https://images.unsplash.com/photo-1748200100142-e8d4f689acd4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200",
+  "https://images.unsplash.com/photo-1748344386932-f0b9c7b925e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200",
+  "https://images.unsplash.com/photo-1543132220-e7fef0b974e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200",
+];
+
+export const RALLY_SESSIONS: RallySession[] = [
+  {
+    id: "rs1",
+    name: "Da Nang Spring Trip",
+    coverImg: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600",
+    placeCount: 14,
+    members: [
+      { id: "m1", name: "You (Linh)", avatar: RALLY_AVATARS[0] },
+      { id: "m2", name: "Minh", avatar: RALLY_AVATARS[1] },
+      { id: "m3", name: "Hana", avatar: RALLY_AVATARS[2] },
+      { id: "m4", name: "Tuan", avatar: RALLY_AVATARS[3] },
+    ],
+    date: "Apr 5 - Apr 12",
+    places: [
+      { id: "rp1", name: "Be Man Seafood", img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=400", category: "Restaurant", rating: 4.6, address: "216 Vo Nguyen Giap", upvotes: ["m1", "m2", "m3"], downvotes: [], comments: [{ memberId: "m2", text: "Their grilled lobster is amazing!", time: "2h ago" }], addedBy: "m1", notes: "Go for dinner on Day 2", tags: ["dinner", "day-2"] },
+      { id: "rp2", name: "Marble Mountains", img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=400", category: "Attraction", rating: 4.7, address: "Hoa Hai, Ngu Hanh Son", upvotes: ["m1", "m3", "m4"], downvotes: ["m2"], comments: [{ memberId: "m3", text: "Let's go early morning!", time: "1h ago" }], addedBy: "m3", notes: "Bring water and sunscreen", tags: ["must-visit", "day-1"] },
+      { id: "rp3", name: "My Khe Beach", img: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=400", category: "Beach", rating: 4.5, address: "Pham Van Dong, Son Tra", upvotes: ["m1", "m2", "m3", "m4"], downvotes: [], comments: [], addedBy: "m1", tags: ["relaxation", "day-3"] },
+    ],
+  },
+  {
+    id: "rs2",
+    name: "Hoi An Weekend",
+    coverImg: "https://images.unsplash.com/photo-1528127269322-539801943592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600",
+    placeCount: 8,
+    members: [
+      { id: "m1", name: "You (Linh)", avatar: RALLY_AVATARS[0] },
+      { id: "m2", name: "Minh", avatar: RALLY_AVATARS[1] },
+    ],
+    date: "Apr 19 - Apr 20",
+    places: [
+      { id: "rp4", name: "Hoi An Old Town", img: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=400", category: "Attraction", rating: 4.9, address: "Old Town, Hoi An", upvotes: ["m1", "m2"], downvotes: [], comments: [{ memberId: "m1", text: "Can't wait to see the lanterns!", time: "5h ago" }], addedBy: "m2", tags: ["must-visit"] },
+    ],
+  },
+  {
+    id: "rs3",
+    name: "Hue Day Trip",
+    coverImg: "https://images.unsplash.com/photo-1566073771259-6a8506099945?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600",
+    placeCount: 6,
+    members: [
+      { id: "m1", name: "You (Linh)", avatar: RALLY_AVATARS[0] },
+      { id: "m3", name: "Hana", avatar: RALLY_AVATARS[2] },
+      { id: "m4", name: "Tuan", avatar: RALLY_AVATARS[3] },
+    ],
+    date: "Apr 15",
+    places: [],
+  },
+];
+
+// ─── Weather Detail ────────────────────────────────────────────────────────
+
+export const WEATHER_DETAIL: WeatherDetail = {
+  temp: 29,
+  condition: "Partly Cloudy",
+  icon: "⛅",
+  humidity: 72,
+  wind: 14,
+  uvIndex: 7,
+  feelsLike: 33,
+  forecast: [
+    { day: "Mon", icon: "☀️", high: 31, low: 24 },
+    { day: "Tue", icon: "⛅", high: 29, low: 23 },
+    { day: "Wed", icon: "🌧️", high: 27, low: 22 },
+    { day: "Thu", icon: "🌤️", high: 30, low: 24 },
+    { day: "Fri", icon: "☀️", high: 32, low: 25 },
+  ],
+};
+
+// ─── Leaderboard ───────────────────────────────────────────────────────────
+
+export const LEADERBOARD: LeaderboardEntry[] = [
+  { id: "l1", name: "Sarah", avatar: "#7c3aed", initial: "S", areaPercent: 42, rank: 1 },
+  { id: "l2", name: "You (Linh)", avatar: "#ff6733", initial: "L", areaPercent: 38, rank: 2, isCurrentUser: true },
+  { id: "l3", name: "Tom", avatar: "#22c55e", initial: "T", areaPercent: 31, rank: 3 },
+  { id: "l4", name: "Mai", avatar: "#ec4899", initial: "M", areaPercent: 25, rank: 4 },
+  { id: "l5", name: "Tuan", avatar: "#3b82f6", initial: "T", areaPercent: 18, rank: 5 },
 ];

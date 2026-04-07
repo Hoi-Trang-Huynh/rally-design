@@ -1,0 +1,295 @@
+import { useState } from "react";
+import {
+  ChevronLeft,
+  ThumbsUp,
+  ThumbsDown,
+  MessageCircle,
+  Star,
+  MapPin,
+  Bookmark,
+  Share2,
+  Pencil,
+  Send,
+  Tag,
+} from "lucide-react";
+import type { RallySession, RallyPlace } from "../../types";
+
+type Props = {
+  sessions: RallySession[];
+};
+
+export default function RalliesSaves({ sessions }: Props) {
+  const [selectedSession, setSelectedSession] = useState<RallySession | null>(null);
+  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
+
+  if (selectedSession) {
+    return (
+      <SessionDetail
+        session={selectedSession}
+        commentInputs={commentInputs}
+        onCommentChange={(placeId, text) =>
+          setCommentInputs((prev) => ({ ...prev, [placeId]: text }))
+        }
+        onBack={() => setSelectedSession(null)}
+      />
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-[10px] px-[16px] pb-[100px] pt-[4px]">
+      {sessions.map((session) => (
+        <button
+          key={session.id}
+          onClick={() => setSelectedSession(session)}
+          className="flex overflow-hidden rounded-[14px] bg-white transition-all active:scale-[0.98]"
+          style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)" }}
+        >
+          {/* Cover image */}
+          <div className="relative h-[100px] w-[100px] shrink-0 overflow-hidden">
+            <img src={session.coverImg} alt={session.name} className="size-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20" />
+          </div>
+
+          {/* Info */}
+          <div className="flex flex-1 flex-col justify-center gap-[6px] p-[12px]">
+            <div className="text-left text-[14px] font-bold text-[#292827]">{session.name}</div>
+            <div className="text-left text-[11px] text-[#949493]">{session.date}</div>
+            <div className="flex items-center gap-[8px]">
+              {/* Place count badge */}
+              <div className="flex items-center gap-[3px] rounded-full bg-[#ff6733]/10 px-[8px] py-[3px]">
+                <MapPin size={10} className="text-[#ff6733]" />
+                <span className="text-[10px] font-semibold text-[#ff6733]">{session.placeCount} places</span>
+              </div>
+              {/* Member avatars */}
+              <div className="flex -space-x-[6px]">
+                {session.members.slice(0, 3).map((m) => (
+                  <img
+                    key={m.id}
+                    src={m.avatar}
+                    alt={m.name}
+                    className="size-[20px] rounded-full border-[1.5px] border-white object-cover"
+                  />
+                ))}
+                {session.members.length > 3 && (
+                  <div className="flex size-[20px] items-center justify-center rounded-full border-[1.5px] border-white bg-[#eaeae9] text-[8px] font-bold text-[#545352]">
+                    +{session.members.length - 3}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Session Detail (inline) ───────────────────────────────────────────────
+
+function SessionDetail({
+  session,
+  commentInputs,
+  onCommentChange,
+  onBack,
+}: {
+  session: RallySession;
+  commentInputs: Record<string, string>;
+  onCommentChange: (placeId: string, text: string) => void;
+  onBack: () => void;
+}) {
+  return (
+    <div className="flex flex-col pb-[100px]">
+      {/* Header */}
+      <div className="sticky top-0 z-10 flex items-center gap-[8px] border-b border-[#eaeae9]/60 bg-white px-[12px] py-[10px]">
+        <button
+          onClick={onBack}
+          className="flex size-[30px] items-center justify-center rounded-full bg-[#f5f5f5] transition-all active:scale-90"
+        >
+          <ChevronLeft size={16} className="text-[#292827]" />
+        </button>
+        <div className="flex-1">
+          <div className="text-[14px] font-bold text-[#292827]">{session.name}</div>
+          <div className="text-[11px] text-[#949493]">{session.date} · {session.places.length} places</div>
+        </div>
+        <div className="flex -space-x-[6px]">
+          {session.members.slice(0, 4).map((m) => (
+            <img
+              key={m.id}
+              src={m.avatar}
+              alt={m.name}
+              className="size-[24px] rounded-full border-[1.5px] border-white object-cover"
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Places list */}
+      <div className="flex flex-col gap-[12px] px-[12px] pt-[12px]">
+        {session.places.map((place) => (
+          <PlaceCard
+            key={place.id}
+            place={place}
+            members={session.members}
+            commentInput={commentInputs[place.id] ?? ""}
+            onCommentChange={(text) => onCommentChange(place.id, text)}
+          />
+        ))}
+
+        {session.places.length === 0 && (
+          <div className="flex flex-col items-center gap-[8px] py-[32px] text-center">
+            <MapPin size={32} className="text-[#d4d4d4]" />
+            <p className="text-[13px] text-[#949493]">No places added yet</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Place Card (collaborative) ────────────────────────────────────────────
+
+function PlaceCard({
+  place,
+  members,
+  commentInput,
+  onCommentChange,
+}: {
+  place: RallyPlace;
+  members: { id: string; name: string; avatar: string }[];
+  commentInput: string;
+  onCommentChange: (text: string) => void;
+}) {
+  const getMember = (id: string) => members.find((m) => m.id === id);
+  const netVotes = place.upvotes.length - place.downvotes.length;
+
+  return (
+    <div
+      className="flex flex-col overflow-hidden rounded-[14px] bg-white"
+      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)" }}
+    >
+      {/* Image + info */}
+      <div className="flex gap-[10px] p-[10px]">
+        <img
+          src={place.img}
+          alt={place.name}
+          className="size-[64px] shrink-0 rounded-[10px] object-cover"
+        />
+        <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
+          <div className="text-[13px] font-bold text-[#292827]">{place.name}</div>
+          <div className="flex items-center gap-[4px] text-[10px] text-[#949493]">
+            <Star size={10} className="fill-[#f59e0b] text-[#f59e0b]" />
+            <span className="font-semibold text-[#292827]">{place.rating}</span>
+            <span>·</span>
+            <span>{place.category}</span>
+          </div>
+          <div className="flex items-center gap-[3px] text-[10px] text-[#949493]">
+            <MapPin size={10} />
+            {place.address}
+          </div>
+          {/* Tags */}
+          {place.tags && place.tags.length > 0 && (
+            <div className="mt-[2px] flex gap-[4px]">
+              {place.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="flex items-center gap-[2px] rounded-full bg-[#f5f5f5] px-[6px] py-[2px] text-[9px] font-medium text-[#545352]"
+                >
+                  <Tag size={8} />
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Notes */}
+      {place.notes && (
+        <div className="mx-[10px] rounded-[8px] bg-[#f8f7f5] px-[10px] py-[6px] text-[11px] italic text-[#545352]">
+          "{place.notes}"
+        </div>
+      )}
+
+      {/* Voting + Actions */}
+      <div className="flex items-center justify-between border-t border-[#eaeae9]/60 px-[10px] py-[8px]">
+        <div className="flex items-center gap-[10px]">
+          {/* Upvote */}
+          <button className="flex items-center gap-[3px] rounded-full bg-[#22c55e]/10 px-[8px] py-[4px] transition-all active:scale-95">
+            <ThumbsUp size={12} className="fill-[#22c55e] text-[#22c55e]" />
+            <span className="text-[11px] font-semibold text-[#22c55e]">{place.upvotes.length}</span>
+          </button>
+          {/* Downvote */}
+          <button className="flex items-center gap-[3px] rounded-full bg-[#f5f5f5] px-[8px] py-[4px] transition-all active:scale-95">
+            <ThumbsDown size={12} className="text-[#949493]" />
+            <span className="text-[11px] font-medium text-[#949493]">{place.downvotes.length}</span>
+          </button>
+          {/* Net score */}
+          <span
+            className="text-[11px] font-bold"
+            style={{ color: netVotes > 0 ? "#22c55e" : netVotes < 0 ? "#ff3b30" : "#949493" }}
+          >
+            {netVotes > 0 ? "+" : ""}{netVotes}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-[6px]">
+          <button className="rounded-full p-[5px] transition-all active:scale-90">
+            <Bookmark size={14} className="text-[#949493]" />
+          </button>
+          <button className="rounded-full p-[5px] transition-all active:scale-90">
+            <Pencil size={14} className="text-[#949493]" />
+          </button>
+          <button className="rounded-full p-[5px] transition-all active:scale-90">
+            <Share2 size={14} className="text-[#949493]" />
+          </button>
+        </div>
+      </div>
+
+      {/* Comments */}
+      {place.comments.length > 0 && (
+        <div className="border-t border-[#eaeae9]/60 px-[10px] py-[8px]">
+          {place.comments.map((comment, i) => {
+            const member = getMember(comment.memberId);
+            return (
+              <div key={i} className="flex items-start gap-[8px] py-[4px]">
+                <img
+                  src={member?.avatar}
+                  alt={member?.name}
+                  className="mt-[2px] size-[20px] shrink-0 rounded-full object-cover"
+                />
+                <div className="flex-1">
+                  <span className="text-[11px] font-semibold text-[#292827]">{member?.name}</span>
+                  <span className="ml-[6px] text-[10px] text-[#b4b4b3]">{comment.time}</span>
+                  <p className="text-[11px] text-[#545352]">{comment.text}</p>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Comment input */}
+          <div className="mt-[4px] flex items-center gap-[6px]">
+            <input
+              type="text"
+              placeholder="Add a comment..."
+              value={commentInput}
+              onChange={(e) => onCommentChange(e.target.value)}
+              className="flex-1 rounded-full bg-[#f5f5f5] px-[10px] py-[6px] text-[11px] text-[#292827] outline-none placeholder:text-[#b4b4b3]"
+            />
+            {commentInput && (
+              <button className="flex size-[26px] items-center justify-center rounded-full bg-[#ff6733] transition-all active:scale-90">
+                <Send size={12} className="text-white" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Added by */}
+      <div className="border-t border-[#eaeae9]/60 px-[10px] py-[6px]">
+        <span className="text-[10px] text-[#b4b4b3]">
+          Added by {getMember(place.addedBy)?.name}
+        </span>
+      </div>
+    </div>
+  );
+}

@@ -55,3 +55,92 @@ export type FriendLocation = {
   y: number;
   status: string;
 };
+
+// ─── Bottom Sheet Types ────────────────────────────────────────────────────
+
+export type BottomSheetSnap = "collapsed" | "half" | "full";
+export type BottomSheetTab = "explore" | "saved" | "add";
+export type SavedSubTab = "personal" | "rallies";
+
+export type EventCard = {
+  id: string;
+  name: string;
+  category: string;
+  img: string;
+  rating: number;
+  reviewCount: number;
+  priceLevel: string;
+  distance: string;
+  openClose: string;
+  saved: boolean;
+  trending?: boolean;
+  avgPrice?: string; // for "Where to Stay"
+};
+
+export type ExploreSection = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  cards: EventCard[];
+};
+
+export type SavedCollection = {
+  id: string;
+  name: string;
+  coverImg: string;
+  count: number;
+  updatedAt: string;
+};
+
+export type RallySession = {
+  id: string;
+  name: string;
+  coverImg: string;
+  placeCount: number;
+  members: { id: string; name: string; avatar: string }[];
+  date: string;
+  places: RallyPlace[];
+};
+
+export type RallyPlace = {
+  id: string;
+  name: string;
+  img: string;
+  category: string;
+  rating: number;
+  address: string;
+  upvotes: string[];
+  downvotes: string[];
+  comments: { memberId: string; text: string; time: string }[];
+  addedBy: string;
+  notes?: string;
+  tags?: string[];
+};
+
+export type WeatherForecast = {
+  day: string;
+  icon: string;
+  high: number;
+  low: number;
+};
+
+export type WeatherDetail = {
+  temp: number;
+  condition: string;
+  icon: string;
+  humidity: number;
+  wind: number;
+  uvIndex: number;
+  feelsLike: number;
+  forecast: WeatherForecast[];
+};
+
+export type LeaderboardEntry = {
+  id: string;
+  name: string;
+  avatar: string;
+  initial: string;
+  areaPercent: number;
+  rank: number;
+  isCurrentUser?: boolean;
+};
