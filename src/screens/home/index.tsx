@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useState } from "react";
-import { Link2, Check } from "lucide-react";
+import { Link2, Check, PenLine } from "lucide-react";
 
 type Screen = {
   path: string;
@@ -70,6 +70,27 @@ const FLOWS: Flow[] = [
         status: "done",
       },
     ],
+  },
+];
+
+const DRAFTS: Screen[] = [
+  {
+    path: "#",
+    title: "Notifications",
+    description: "Push alerts, in-app badges, notification center.",
+    status: "planned",
+  },
+  {
+    path: "#",
+    title: "Profile Settings",
+    description: "Edit avatar, name, preferences, linked accounts.",
+    status: "wip",
+  },
+  {
+    path: "#",
+    title: "Chat Room",
+    description: "Group messaging, reactions, media sharing.",
+    status: "planned",
   },
 ];
 
@@ -319,6 +340,28 @@ export default function HomeScreen() {
             ))}
           </div>
         )}
+
+        {/* ─── Drafts ─── */}
+        <div className="mt-[40px]">
+          <div className="mb-[16px] flex items-center gap-[10px]">
+            <div className="flex size-[28px] items-center justify-center rounded-[8px] bg-[#eaeae9]">
+              <PenLine size={14} className="text-[#949493]" strokeWidth={2} />
+            </div>
+            <div className="flex items-center gap-[8px]">
+              <h2 className="text-[16px] font-semibold leading-[20px] text-[#292827]">
+                Drafts
+              </h2>
+              <span className="rounded-full bg-[#eaeae9] px-[8px] py-[1px] text-[11px] font-semibold text-[#949493]">
+                {DRAFTS.length}
+              </span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-[12px] sm:grid-cols-3">
+            {DRAFTS.map((screen) => (
+              <ScreenCard key={screen.title} screen={screen} />
+            ))}
+          </div>
+        </div>
 
         {/* ─── Footer ─── */}
         <div className="mt-[48px] border-t border-[#e0dfdd] pt-[20px]">
