@@ -1,19 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Navigation, Trophy } from "lucide-react";
+import { Navigation, X, Check, Image } from "lucide-react";
 import { toast } from "sonner";
 import AndroidFrame from "../../app/components/layout/android-frame";
 import PhoneFrame from "../../app/components/layout/phone-frame";
-import type { MapPlace, MapLayers, BottomSheetSnap, BottomSheetTab } from "./types";
+import type { MapPlace, BottomSheetSnap, BottomSheetTab, ExploreViewMode } from "./types";
 import {
-  CATEGORIES,
-  PLACES,
-  FRIENDS,
-  EXPLORE_SECTIONS,
-  SAVED_COLLECTIONS,
-  RALLY_SESSIONS,
-  WEATHER_DETAIL,
-  LEADERBOARD,
+  CATEGORIES, PLACES, EXPLORE_SECTIONS, SAVED_COLLECTIONS, RALLY_SESSIONS,
+  COMMUNITY_COLLECTIONS, CATEGORY_FILTERS, CATEGORY_DETAIL_CARDS,
 } from "./data";
 import SearchBar from "./components/search-bar";
 import CategoryChips from "./components/category-chips";
@@ -21,15 +15,9 @@ import ExploreMapBg from "./components/explore-map-bg";
 import MapPins from "./components/map-pins";
 import PlaceDetailSheet from "./components/place-detail-sheet";
 import SaveDestinationPicker from "./components/save-destination-picker";
-import MapLayersPanel from "./components/map-layers-panel";
-import FriendMarkers from "./components/friend-markers";
-import WeatherOverlay from "./components/weather-overlay";
 import BottomSheet from "./components/bottom-sheet/bottom-sheet";
 import ExploreTab from "./components/bottom-sheet/explore-tab";
 import SavedTab from "./components/bottom-sheet/saved-tab";
-import AddPlacesTab from "./components/bottom-sheet/add-places-tab";
-import WeatherModal from "./components/weather-modal";
-import LeaderboardPanel from "./components/leaderboard-panel";
 
 export default function ExploreMapScreen() {
   const navigate = useNavigate();
@@ -39,58 +27,33 @@ export default function ExploreMapScreen() {
   const [selectedPlace, setSelectedPlace] = useState<MapPlace | null>(null);
   const [places, setPlaces] = useState(PLACES);
 
-  // Save flow state
   const [showSavePicker, setShowSavePicker] = useState(false);
   const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null);
 
-  // Map layers state
-  const [layers, setLayers] = useState<MapLayers>({
-    traffic: false,
-    transit: false,
-    weather: false,
-    friends: false,
-  });
-  const [sharingLocation, setSharingLocation] = useState(false);
-
-  // Bottom sheet state
   const [sheetSnap, setSheetSnap] = useState<BottomSheetSnap>("half");
   const [sheetTab, setSheetTab] = useState<BottomSheetTab>("explore");
 
-  // Explore tab card saves
+  const [exploreViewMode, setExploreViewMode] = useState<ExploreViewMode>("overview");
+  const [activeCategoryDetail, setActiveCategoryDetail] = useState<string | null>(null);
+
   const [exploreSections, setExploreSections] = useState(EXPLORE_SECTIONS);
 
-  // Modals
-  const [showWeatherModal, setShowWeatherModal] = useState(false);
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showCreateCollection, setShowCreateCollection] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState("");
 
-  const toggleLayer = (layer: keyof MapLayers) => {
-    setLayers((prev) => ({ ...prev, [layer]: !prev[layer] }));
-  };
-
-  // ─── Filtering ────────────────────────────────────────────────────────────
   const filteredPlaces = places.filter((p) => {
-    const matchCategory =
-      activeCategory === "all" ||
-      (activeCategory === "trending" ? !!p.trending : p.category === activeCategory);
-    const matchSearch =
-      !searchQuery ||
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCategory = activeCategory === "all" || p.category === activeCategory;
+    const matchSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCategory && matchSearch;
   });
 
-  // ─── Handlers ─────────────────────────────────────────────────────────────
-  const handleSelectPlace = (place: MapPlace) => {
-    setSelectedPlace(place);
-  };
+  const handleSelectPlace = (place: MapPlace) => setSelectedPlace(place);
 
   const handleSaveButtonTap = (placeId: string) => {
     const place = places.find((p) => p.id === placeId);
     if (place?.saved) {
       setPlaces((prev) => prev.map((p) => (p.id === placeId ? { ...p, saved: false } : p)));
-      if (selectedPlace?.id === placeId) {
-        setSelectedPlace((prev) => (prev ? { ...prev, saved: false } : null));
-      }
+      if (selectedPlace?.id === placeId) setSelectedPlace((prev) => (prev ? { ...prev, saved: false } : null));
       toast.info("Removed from library");
     } else {
       setSavingPlaceId(placeId);
@@ -98,177 +61,136 @@ export default function ExploreMapScreen() {
     }
   };
 
-  const handleSaveConfirm = (destination: "personal" | "shared", notes: string, tags: string[]) => {
+  const handleSaveConfirm = (destination: "personal" | "shared", notes: string, tags: string[], _collectionId?: string | null, _sessionIds?: string[]) => {
     if (!savingPlaceId) return;
+    // Mark map place as saved (if it's a map place)
     setPlaces((prev) => prev.map((p) => (p.id === savingPlaceId ? { ...p, saved: true } : p)));
-    if (selectedPlace?.id === savingPlaceId) {
-      setSelectedPlace((prev) => (prev ? { ...prev, saved: true } : null));
-    }
-    const place = places.find((p) => p.id === savingPlaceId);
-    const destLabel = destination === "personal" ? "Personal Library" : "Shared Session Library";
-    toast.success(`"${place?.name}" saved to ${destLabel}`);
+    if (selectedPlace?.id === savingPlaceId) setSelectedPlace((prev) => (prev ? { ...prev, saved: true } : null));
+    // Mark explore card as saved (if it's an explore card)
+    setExploreSections((prev) => prev.map((section) => ({ ...section, cards: section.cards.map((c) => c.id === savingPlaceId ? { ...c, saved: true } : c) })));
+    const name = places.find((p) => p.id === savingPlaceId)?.name || exploreSections.flatMap((s) => s.cards).find((c) => c.id === savingPlaceId)?.name || "";
+    toast.success(`"${name}" saved to ${destination === "personal" ? "Personal Library" : "Shared Session Library"}`);
     setShowSavePicker(false);
     setSavingPlaceId(null);
   };
 
   const handleExploreCardSave = (cardId: string) => {
-    setExploreSections((prev) =>
-      prev.map((section) => ({
-        ...section,
-        cards: section.cards.map((card) =>
-          card.id === cardId ? { ...card, saved: !card.saved } : card
-        ),
-      }))
-    );
     const card = exploreSections.flatMap((s) => s.cards).find((c) => c.id === cardId);
-    if (card) {
-      toast[card.saved ? "info" : "success"](
-        card.saved ? `Removed "${card.name}"` : `Saved "${card.name}"`
-      );
+    if (card?.saved) {
+      // Unsave: toggle off directly
+      setExploreSections((prev) => prev.map((section) => ({ ...section, cards: section.cards.map((c) => c.id === cardId ? { ...c, saved: false } : c) })));
+      toast.info(`Removed "${card.name}"`);
+    } else {
+      // Save: open the Save Place modal
+      setSavingPlaceId(cardId);
+      setShowSavePicker(true);
     }
   };
 
   const handleTrendingOnMaps = () => {
-    setActiveCategory("trending");
+    setActiveCategory("all");
+    setExploreViewMode("overview");
+    setActiveCategoryDetail(null);
     setSheetSnap("collapsed");
     toast.success("Showing trending places on map");
   };
 
-  // Get saved cards for the saved tab
+  const handleCategoryChange = (categoryId: string) => {
+    setActiveCategory(categoryId);
+    if (categoryId === "all") {
+      setExploreViewMode("overview");
+      setActiveCategoryDetail(null);
+    } else {
+      setExploreViewMode("category-detail");
+      setActiveCategoryDetail(categoryId);
+      if (sheetSnap === "collapsed") setSheetSnap("half");
+    }
+  };
+
+  const handleCategoryBack = () => { setExploreViewMode("overview"); setActiveCategoryDetail(null); setActiveCategory("all"); };
+
+  const handleSeeMore = (sectionId: string) => {
+    const map: Record<string, string> = { trending: "all", eat: "restaurant", play: "attraction", community: "all", stay: "hotel" };
+    handleCategoryChange(map[sectionId] || "all");
+  };
+
+  const activeCategoryConfig = CATEGORY_FILTERS.find((f) => f.categoryId === activeCategoryDetail);
+  const activeCategoryLabel = CATEGORIES.find((c) => c.id === activeCategoryDetail)?.label ?? "";
+  const categoryDetailCards = activeCategoryDetail ? CATEGORY_DETAIL_CARDS[activeCategoryDetail] ?? [] : [];
   const savedCards = exploreSections.flatMap((s) => s.cards).filter((c) => c.saved);
 
-  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <AndroidFrame>
       <PhoneFrame activeTab="explore" showHeader={false} showBottomNav={!selectedPlace}>
         <div className="relative size-full overflow-hidden">
-          {/* Map background with layers */}
           <div className="absolute inset-0 bg-[#e8e4df]">
-            <ExploreMapBg layers={layers} />
-
-            {/* Friend markers layer */}
-            {layers.friends && <FriendMarkers friends={FRIENDS} />}
-
-            {/* Place pins */}
-            <MapPins
-              places={filteredPlaces}
-              selectedId={selectedPlace?.id ?? null}
-              onSelect={handleSelectPlace}
-            />
+            <ExploreMapBg />
+            <MapPins places={filteredPlaces} selectedId={selectedPlace?.id ?? null} onSelect={handleSelectPlace} />
           </div>
 
-          {/* Floating controls */}
-          <SearchBar
-            query={searchQuery}
-            onChange={setSearchQuery}
-            onFocus={() => setSearchFocused(true)}
-            onBlur={() => setSearchFocused(false)}
-          />
-          <CategoryChips
-            categories={CATEGORIES}
-            activeCategory={activeCategory}
-            onChange={setActiveCategory}
-          />
+          <SearchBar query={searchQuery} onChange={setSearchQuery} onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)} />
+          <CategoryChips categories={CATEGORIES} activeCategory={activeCategory} onChange={handleCategoryChange} />
 
-          {/* Weather overlay */}
-          {layers.weather && !selectedPlace && <WeatherOverlay />}
-
-          {/* Map layers FAB + panel */}
           {!selectedPlace && (
-            <MapLayersPanel
-              layers={layers}
-              onToggle={toggleLayer}
-              sharingLocation={sharingLocation}
-              onToggleSharing={() => {
-                setSharingLocation((v) => !v);
-                toast[sharingLocation ? "info" : "success"](
-                  sharingLocation ? "Location sharing off" : "Sharing your location with trip members"
-                );
-              }}
-            />
-          )}
-
-          {/* Right-side FABs */}
-          {!selectedPlace && (
-            <div className="absolute right-[16px] z-20 flex flex-col gap-[8px]" style={{ bottom: sheetSnap === "collapsed" ? 96 : sheetSnap === "half" ? 356 : 596 , transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
-              {/* Leaderboard FAB */}
-              <button
-                onClick={() => setShowLeaderboard(true)}
-                className="flex size-[44px] items-center justify-center rounded-full bg-white transition-all active:scale-95"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}
-              >
-                <Trophy size={20} className="text-[#f59e0b]" strokeWidth={2} />
-              </button>
-              {/* Current location FAB */}
-              <button
-                className="flex size-[44px] items-center justify-center rounded-full bg-white transition-all active:scale-95"
-                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}
-              >
+            <div className="absolute right-[16px] z-20" style={{ bottom: sheetSnap === "collapsed" ? 96 : sheetSnap === "half" ? 356 : 596, transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
+              <button className="flex size-[44px] items-center justify-center rounded-full bg-white transition-all active:scale-95" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>
                 <Navigation size={20} className="text-[#ff6733]" strokeWidth={2} />
               </button>
             </div>
           )}
 
-          {/* Bottom Sheet (hidden when place detail is open) */}
           {!selectedPlace && (
-            <BottomSheet
-              activeTab={sheetTab}
-              onTabChange={setSheetTab}
-              snap={sheetSnap}
-              onSnapChange={setSheetSnap}
-              onWeatherTap={() => setShowWeatherModal(true)}
-            >
+            <BottomSheet activeTab={sheetTab} onTabChange={setSheetTab} snap={sheetSnap} onSnapChange={setSheetSnap}>
               {sheetTab === "explore" && (
-                <ExploreTab
-                  sections={exploreSections}
-                  onSaveCard={handleExploreCardSave}
-                  onTrendingOnMaps={handleTrendingOnMaps}
-                />
+                <ExploreTab sections={exploreSections} communityCollections={COMMUNITY_COLLECTIONS} onSaveCard={handleExploreCardSave} onTrendingOnMaps={handleTrendingOnMaps}
+                  viewMode={exploreViewMode} activeCategoryId={activeCategoryDetail} activeCategoryLabel={activeCategoryLabel}
+                  categoryFilters={activeCategoryConfig?.filters ?? []} categoryCards={categoryDetailCards} onCategoryBack={handleCategoryBack} onSeeMore={handleSeeMore} />
               )}
-              {sheetTab === "saved" && (
-                <SavedTab
-                  collections={SAVED_COLLECTIONS}
-                  savedPlaces={savedCards}
-                  sessions={RALLY_SESSIONS}
-                />
-              )}
-              {sheetTab === "add" && <AddPlacesTab />}
+              {sheetTab === "saved" && <SavedTab collections={SAVED_COLLECTIONS} savedPlaces={savedCards} sessions={RALLY_SESSIONS} onNewCollection={() => setShowCreateCollection(true)} />}
             </BottomSheet>
           )}
 
-          {/* Place detail bottom sheet */}
           {selectedPlace && (
-            <PlaceDetailSheet
-              place={selectedPlace}
-              onClose={() => setSelectedPlace(null)}
-              onSave={handleSaveButtonTap}
-              onViewLibrary={() => navigate("/session/active/library")}
-            />
+            <PlaceDetailSheet place={selectedPlace} onClose={() => setSelectedPlace(null)} onSave={handleSaveButtonTap} onViewLibrary={() => navigate("/session/active/library")} />
           )}
 
-          {/* Save destination picker */}
           {showSavePicker && savingPlaceId && (
-            <SaveDestinationPicker
-              placeName={places.find((p) => p.id === savingPlaceId)?.name ?? ""}
-              onClose={() => { setShowSavePicker(false); setSavingPlaceId(null); }}
-              onSave={handleSaveConfirm}
-            />
+            <SaveDestinationPicker placeName={places.find((p) => p.id === savingPlaceId)?.name || exploreSections.flatMap((s) => s.cards).find((c) => c.id === savingPlaceId)?.name || ""}
+              onClose={() => { setShowSavePicker(false); setSavingPlaceId(null); }} onSave={handleSaveConfirm} collections={SAVED_COLLECTIONS} sessions={RALLY_SESSIONS} />
           )}
 
-          {/* Weather modal */}
-          {showWeatherModal && (
-            <WeatherModal
-              weather={WEATHER_DETAIL}
-              onClose={() => setShowWeatherModal(false)}
-            />
-          )}
-
-          {/* Leaderboard panel */}
-          {showLeaderboard && (
-            <LeaderboardPanel
-              entries={LEADERBOARD}
-              onClose={() => setShowLeaderboard(false)}
-            />
+          {/* Create Collection Modal */}
+          {showCreateCollection && (
+            <div className="absolute inset-0 z-[70] flex items-center justify-center" onClick={() => setShowCreateCollection(false)}>
+              <div className="absolute inset-0 bg-black/40" />
+              <div className="relative z-10 mx-[24px] w-full max-w-[340px] rounded-[20px] bg-white p-[20px]"
+                style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }} onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between pb-[14px]">
+                  <h3 className="text-[16px] font-bold text-[#292827]">New Collection</h3>
+                  <button onClick={() => { setShowCreateCollection(false); setNewCollectionName(""); }}
+                    className="flex size-[30px] items-center justify-center rounded-full bg-[#f5f5f5] transition-all active:scale-90">
+                    <X size={14} strokeWidth={2.5} className="text-[#545352]" />
+                  </button>
+                </div>
+                <div className="mb-[14px] flex h-[100px] items-center justify-center rounded-[12px] bg-[#f5f5f5]">
+                  <div className="flex flex-col items-center gap-[4px]">
+                    <Image size={24} className="text-[#b4b4b3]" strokeWidth={1.5} />
+                    <span className="text-[11px] font-medium text-[#b4b4b3]">Add cover photo</span>
+                  </div>
+                </div>
+                <div className="mb-[16px]">
+                  <label className="mb-[4px] block text-[11px] font-medium text-[#545352]">Collection name</label>
+                  <input type="text" value={newCollectionName} onChange={(e) => setNewCollectionName(e.target.value)} placeholder="e.g. Best Coffee Spots" autoFocus
+                    className="w-full rounded-[10px] border-[1.5px] border-[#eaeae9] bg-[#f9f9f9] px-[12px] py-[10px] text-[14px] text-[#292827] outline-none placeholder:text-[#c4c4c3] transition-colors focus:border-[#ff6733] focus:bg-white" />
+                </div>
+                <button onClick={() => { setShowCreateCollection(false); setNewCollectionName(""); toast.success("Collection created"); }}
+                  disabled={!newCollectionName.trim()}
+                  className="flex h-[44px] w-full items-center justify-center gap-[6px] rounded-full bg-[#ff6733] text-[14px] font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-40"
+                  style={{ boxShadow: "0 2px 12px rgba(255,103,51,0.35)" }}>
+                  <Check size={16} strokeWidth={2.5} />Create Collection
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </PhoneFrame>

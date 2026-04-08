@@ -1,15 +1,12 @@
 import { useState } from "react";
 import {
   ChevronLeft,
-  ThumbsUp,
-  ThumbsDown,
-  MessageCircle,
+  Heart,
   Star,
   MapPin,
   Bookmark,
   Share2,
   Pencil,
-  Send,
   Tag,
 } from "lucide-react";
 import type { RallySession, RallyPlace } from "../../types";
@@ -20,16 +17,10 @@ type Props = {
 
 export default function RalliesSaves({ sessions }: Props) {
   const [selectedSession, setSelectedSession] = useState<RallySession | null>(null);
-  const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
-
   if (selectedSession) {
     return (
       <SessionDetail
         session={selectedSession}
-        commentInputs={commentInputs}
-        onCommentChange={(placeId, text) =>
-          setCommentInputs((prev) => ({ ...prev, [placeId]: text }))
-        }
         onBack={() => setSelectedSession(null)}
       />
     );
@@ -88,13 +79,9 @@ export default function RalliesSaves({ sessions }: Props) {
 
 function SessionDetail({
   session,
-  commentInputs,
-  onCommentChange,
   onBack,
 }: {
   session: RallySession;
-  commentInputs: Record<string, string>;
-  onCommentChange: (placeId: string, text: string) => void;
   onBack: () => void;
 }) {
   return (
@@ -130,8 +117,6 @@ function SessionDetail({
             key={place.id}
             place={place}
             members={session.members}
-            commentInput={commentInputs[place.id] ?? ""}
-            onCommentChange={(text) => onCommentChange(place.id, text)}
           />
         ))}
 
@@ -151,16 +136,12 @@ function SessionDetail({
 function PlaceCard({
   place,
   members,
-  commentInput,
-  onCommentChange,
 }: {
   place: RallyPlace;
   members: { id: string; name: string; avatar: string }[];
-  commentInput: string;
-  onCommentChange: (text: string) => void;
 }) {
   const getMember = (id: string) => members.find((m) => m.id === id);
-  const netVotes = place.upvotes.length - place.downvotes.length;
+  const likeCount = place.upvotes.length;
 
   return (
     <div
@@ -210,27 +191,12 @@ function PlaceCard({
         </div>
       )}
 
-      {/* Voting + Actions */}
+      {/* Likes + Actions */}
       <div className="flex items-center justify-between border-t border-[#eaeae9]/60 px-[10px] py-[8px]">
-        <div className="flex items-center gap-[10px]">
-          {/* Upvote */}
-          <button className="flex items-center gap-[3px] rounded-full bg-[#22c55e]/10 px-[8px] py-[4px] transition-all active:scale-95">
-            <ThumbsUp size={12} className="fill-[#22c55e] text-[#22c55e]" />
-            <span className="text-[11px] font-semibold text-[#22c55e]">{place.upvotes.length}</span>
-          </button>
-          {/* Downvote */}
-          <button className="flex items-center gap-[3px] rounded-full bg-[#f5f5f5] px-[8px] py-[4px] transition-all active:scale-95">
-            <ThumbsDown size={12} className="text-[#949493]" />
-            <span className="text-[11px] font-medium text-[#949493]">{place.downvotes.length}</span>
-          </button>
-          {/* Net score */}
-          <span
-            className="text-[11px] font-bold"
-            style={{ color: netVotes > 0 ? "#22c55e" : netVotes < 0 ? "#ff3b30" : "#949493" }}
-          >
-            {netVotes > 0 ? "+" : ""}{netVotes}
-          </span>
-        </div>
+        <button className="flex items-center gap-[4px] rounded-full bg-[#ff4466]/10 px-[10px] py-[5px] transition-all active:scale-95">
+          <Heart size={13} className="fill-[#ff4466] text-[#ff4466]" />
+          <span className="text-[11px] font-semibold text-[#ff4466]">{likeCount}</span>
+        </button>
 
         <div className="flex items-center gap-[6px]">
           <button className="rounded-full p-[5px] transition-all active:scale-90">
@@ -244,45 +210,6 @@ function PlaceCard({
           </button>
         </div>
       </div>
-
-      {/* Comments */}
-      {place.comments.length > 0 && (
-        <div className="border-t border-[#eaeae9]/60 px-[10px] py-[8px]">
-          {place.comments.map((comment, i) => {
-            const member = getMember(comment.memberId);
-            return (
-              <div key={i} className="flex items-start gap-[8px] py-[4px]">
-                <img
-                  src={member?.avatar}
-                  alt={member?.name}
-                  className="mt-[2px] size-[20px] shrink-0 rounded-full object-cover"
-                />
-                <div className="flex-1">
-                  <span className="text-[11px] font-semibold text-[#292827]">{member?.name}</span>
-                  <span className="ml-[6px] text-[10px] text-[#b4b4b3]">{comment.time}</span>
-                  <p className="text-[11px] text-[#545352]">{comment.text}</p>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Comment input */}
-          <div className="mt-[4px] flex items-center gap-[6px]">
-            <input
-              type="text"
-              placeholder="Add a comment..."
-              value={commentInput}
-              onChange={(e) => onCommentChange(e.target.value)}
-              className="flex-1 rounded-full bg-[#f5f5f5] px-[10px] py-[6px] text-[11px] text-[#292827] outline-none placeholder:text-[#b4b4b3]"
-            />
-            {commentInput && (
-              <button className="flex size-[26px] items-center justify-center rounded-full bg-[#ff6733] transition-all active:scale-90">
-                <Send size={12} className="text-white" />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Added by */}
       <div className="border-t border-[#eaeae9]/60 px-[10px] py-[6px]">

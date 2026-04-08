@@ -59,7 +59,7 @@ export type FriendLocation = {
 // ─── Bottom Sheet Types ────────────────────────────────────────────────────
 
 export type BottomSheetSnap = "collapsed" | "half" | "full";
-export type BottomSheetTab = "explore" | "saved" | "add";
+export type BottomSheetTab = "explore" | "saved";
 export type SavedSubTab = "personal" | "rallies";
 
 export type EventCard = {
@@ -143,4 +143,29 @@ export type LeaderboardEntry = {
   areaPercent: number;
   rank: number;
   isCurrentUser?: boolean;
+};
+
+// ─── Explore V2 Types ──────────────────────────────────────────────────────
+
+export type ExploreViewMode = "overview" | "category-detail";
+
+export type CategoryFilterGroup = {
+  id: string;
+  label: string;
+  options: string[];
+};
+
+export type CategoryFilterConfig = {
+  categoryId: string;
+  filters: CategoryFilterGroup[];
+};
+
+export type CommunityCollection = {
+  id: string;
+  title: string;
+  coverImg: string;
+  creatorName: string;
+  creatorAvatar: string;
+  placeCount: number;
+  description?: string;
 };

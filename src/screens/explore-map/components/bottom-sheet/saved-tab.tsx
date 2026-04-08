@@ -7,9 +7,10 @@ type Props = {
   collections: SavedCollection[];
   savedPlaces: EventCard[];
   sessions: RallySession[];
+  onNewCollection: () => void;
 };
 
-export default function SavedTab({ collections, savedPlaces, sessions }: Props) {
+export default function SavedTab({ collections, savedPlaces, sessions, onNewCollection }: Props) {
   const [subTab, setSubTab] = useState<SavedSubTab>("personal");
 
   return (
@@ -33,7 +34,7 @@ export default function SavedTab({ collections, savedPlaces, sessions }: Props) 
 
       {/* Content */}
       {subTab === "personal" ? (
-        <PersonalSaves collections={collections} savedPlaces={savedPlaces} />
+        <PersonalSaves collections={collections} savedPlaces={savedPlaces} onNewCollection={onNewCollection} />
       ) : (
         <RalliesSaves sessions={sessions} />
       )}

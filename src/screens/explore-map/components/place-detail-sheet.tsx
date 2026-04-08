@@ -4,7 +4,7 @@ import {
   Flame,
 } from "lucide-react";
 import type { MapPlace, Review } from "../types";
-import { CATEGORY_COLORS, REVIEWS, WEATHER } from "../data";
+import { CATEGORY_COLORS, REVIEWS } from "../data";
 
 // ─── Photo Carousel (CSS scroll-snap) ────────────────────────────────────────
 function PhotoCarousel({ photos, name }: { photos: string[]; name: string }) {
@@ -124,7 +124,6 @@ export default function PlaceDetailSheet({
   onViewLibrary,
 }: PlaceDetailSheetProps) {
   const reviews = REVIEWS[place.id] || [];
-  const weather = WEATHER[place.id];
   const color = CATEGORY_COLORS[place.category] || "#ff6733";
 
   return (
@@ -191,13 +190,6 @@ export default function PlaceDetailSheet({
                 <p className="text-[12px] font-semibold text-[#545352]">{place.priceLevel}</p>
               </div>
             </div>
-            {/* Weather chip */}
-            {weather && (
-              <div className="flex shrink-0 items-center gap-[4px] rounded-[10px] bg-[#f0f7ff] px-[8px] py-[5px]">
-                <span className="text-[13px]">{weather.icon}</span>
-                <p className="text-[11px] font-semibold text-[#3b82f6]">{weather.temp}°C</p>
-              </div>
-            )}
           </div>
 
           <p className="mt-[8px] text-[12px] leading-[18px] text-[#696968]">

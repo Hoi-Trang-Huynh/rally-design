@@ -75,6 +75,12 @@ const FLOWS: Flow[] = [
 
 const DRAFTS: Screen[] = [
   {
+    path: "/explore",
+    title: "Explore Tab V2",
+    description: "Category detail pages, community collections, enhanced save flow.",
+    status: "wip",
+  },
+  {
     path: "#",
     title: "Notifications",
     description: "Push alerts, in-app badges, notification center.",

@@ -1,49 +1,37 @@
 import {
   MapPin,
-  Flame,
   Utensils,
   Coffee,
   Camera,
-  TreePine,
-  Wine,
-  ShoppingBag,
-  Building2,
+  Hotel,
 } from "lucide-react";
 import type {
   MapPlace,
   Category,
   Review,
-  WeatherInfo,
-  FriendLocation,
   ExploreSection,
   SavedCollection,
   RallySession,
-  WeatherDetail,
-  LeaderboardEntry,
+  CategoryFilterConfig,
+  CommunityCollection,
+  EventCard,
 } from "./types";
 
 // ─── Categories ─────────────────────────────────────────────────────────────
 export const CATEGORIES: Category[] = [
   { id: "all", label: "All", icon: MapPin },
-  { id: "trending", label: "Trending", icon: Flame },
   { id: "restaurant", label: "Restaurants", icon: Utensils },
-  { id: "cafe", label: "Cafes", icon: Coffee },
+  { id: "hotel", label: "Hotels", icon: Hotel },
+  { id: "cafe", label: "Coffee", icon: Coffee },
   { id: "attraction", label: "Attractions", icon: Camera },
-  { id: "park", label: "Parks", icon: TreePine },
-  { id: "nightlife", label: "Nightlife", icon: Wine },
-  { id: "shopping", label: "Shopping", icon: ShoppingBag },
-  { id: "museum", label: "Museums", icon: Building2 },
 ];
 
 // ─── Category pin colors ────────────────────────────────────────────────────
 export const CATEGORY_COLORS: Record<string, string> = {
   restaurant: "#ff6733",
+  hotel: "#3b82f6",
   cafe: "#8B5E3C",
   attraction: "#7c3aed",
-  park: "#22c55e",
-  nightlife: "#ec4899",
-  shopping: "#3b82f6",
-  museum: "#eab308",
 };
 
 // ─── Places ─────────────────────────────────────────────────────────────────
@@ -231,25 +219,6 @@ export const REVIEWS: Record<string, Review[]> = {
   ],
 };
 
-// ─── Weather (mock, keyed by place id) ──────────────────────────────────────
-export const WEATHER: Record<string, WeatherInfo> = {
-  p1: { temp: 29, condition: "Partly Cloudy", icon: "⛅" },
-  p2: { temp: 26, condition: "Sunny", icon: "☀️" },
-  p3: { temp: 28, condition: "Sunny", icon: "☀️" },
-  p4: { temp: 30, condition: "Sunny", icon: "☀️" },
-  p5: { temp: 27, condition: "Clear", icon: "🌤️" },
-  p6: { temp: 26, condition: "Clear Night", icon: "🌙" },
-  p7: { temp: 29, condition: "Humid", icon: "🌥️" },
-  p8: { temp: 28, condition: "Sunny", icon: "☀️" },
-};
-
-// ─── Friend locations ───────────────────────────────────────────────────────
-export const FRIENDS: FriendLocation[] = [
-  { id: "f1", name: "Sarah", avatar: "#7c3aed", initial: "S", x: 55, y: 42, status: "Exploring nearby" },
-  { id: "f2", name: "Tom", avatar: "#22c55e", initial: "T", x: 30, y: 30, status: "At hotel" },
-  { id: "f3", name: "Mai", avatar: "#ec4899", initial: "M", x: 70, y: 55, status: "Having lunch" },
-];
-
 // ─── Explore Sections (Bottom Sheet Discovery) ────────────────────────────
 
 export const EXPLORE_SECTIONS: ExploreSection[] = [
@@ -381,31 +350,81 @@ export const RALLY_SESSIONS: RallySession[] = [
   },
 ];
 
-// ─── Weather Detail ────────────────────────────────────────────────────────
+// ─── Category Filters (Explore V2) ───────────────────────────────────────
 
-export const WEATHER_DETAIL: WeatherDetail = {
-  temp: 29,
-  condition: "Partly Cloudy",
-  icon: "⛅",
-  humidity: 72,
-  wind: 14,
-  uvIndex: 7,
-  feelsLike: 33,
-  forecast: [
-    { day: "Mon", icon: "☀️", high: 31, low: 24 },
-    { day: "Tue", icon: "⛅", high: 29, low: 23 },
-    { day: "Wed", icon: "🌧️", high: 27, low: 22 },
-    { day: "Thu", icon: "🌤️", high: 30, low: 24 },
-    { day: "Fri", icon: "☀️", high: 32, low: 25 },
+export const CATEGORY_FILTERS: CategoryFilterConfig[] = [
+  {
+    categoryId: "restaurant",
+    filters: [
+      { id: "cuisine", label: "Cuisine", options: ["Vietnamese", "Japanese", "Italian", "Seafood", "Street Food"] },
+      { id: "price", label: "Price", options: ["$", "$$", "$$$", "$$$$"] },
+      { id: "rating", label: "Rating", options: ["4.5+", "4.0+", "3.5+"] },
+    ],
+  },
+  {
+    categoryId: "hotel",
+    filters: [
+      { id: "stars", label: "Stars", options: ["5-Star", "4-Star", "3-Star", "Budget"] },
+      { id: "price", label: "Price", options: ["$", "$$", "$$$", "$$$$"] },
+      { id: "amenities", label: "Amenities", options: ["Pool", "Spa", "Gym", "Beach Access"] },
+    ],
+  },
+  {
+    categoryId: "cafe",
+    filters: [
+      { id: "type", label: "Type", options: ["Specialty", "Traditional", "Co-working"] },
+      { id: "vibe", label: "Vibe", options: ["Quiet", "Lively", "Outdoor"] },
+    ],
+  },
+  {
+    categoryId: "attraction",
+    filters: [
+      { id: "type", label: "Type", options: ["Nature", "Historical", "Cultural", "Adventure"] },
+      { id: "duration", label: "Duration", options: ["< 2h", "Half day", "Full day"] },
+    ],
+  },
+];
+
+// ─── Community Collections (Explore V2) ──────────────────────────────────
+
+export const COMMUNITY_COLLECTIONS: CommunityCollection[] = [
+  { id: "cc1", title: "Hidden Gems of Da Nang", coverImg: "https://images.unsplash.com/photo-1528127269322-539801943592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", creatorName: "Trang N.", creatorAvatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200", placeCount: 8, description: "Off-the-beaten-path spots locals love" },
+  { id: "cc2", title: "Best Street Food Trail", coverImg: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", creatorName: "Alex M.", creatorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200", placeCount: 12, description: "A walking food tour through the city" },
+  { id: "cc3", title: "Instagram-Worthy Spots", coverImg: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", creatorName: "Sarah K.", creatorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200", placeCount: 6, description: "Best photo spots for your feed" },
+  { id: "cc4", title: "Family-Friendly Day Out", coverImg: "https://images.unsplash.com/photo-1513106580091-1d82408b8cd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", creatorName: "Minh D.", creatorAvatar: "https://images.unsplash.com/photo-1543132220-e7fef0b974e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200", placeCount: 9, description: "Fun for kids and parents alike" },
+  { id: "cc5", title: "Sunset Chasers Guide", coverImg: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", creatorName: "Yuki H.", creatorAvatar: "https://images.unsplash.com/photo-1569913486515-b74bf7751574?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=200", placeCount: 5, description: "The best sunset views in the area" },
+];
+
+// ─── Category Detail Cards (Explore V2) ──────────────────────────────────
+
+export const CATEGORY_DETAIL_CARDS: Record<string, EventCard[]> = {
+  restaurant: [
+    { id: "cd1", name: "Be Man Seafood", category: "Restaurant", img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 1247, priceLevel: "$$", distance: "0.8 km", openClose: "10AM - 10PM", saved: false },
+    { id: "cd2", name: "Mi Quang Ba Mua", category: "Restaurant", img: "https://images.unsplash.com/photo-1555126634-323283e090fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.5, reviewCount: 890, priceLevel: "$", distance: "1.5 km", openClose: "6AM - 9PM", saved: false },
+    { id: "cd3", name: "Banh Xeo Ba Duong", category: "Restaurant", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.7, reviewCount: 2100, priceLevel: "$", distance: "2.1 km", openClose: "10AM - 9PM", saved: true },
+    { id: "cd4", name: "Hai San Pho", category: "Restaurant", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.3, reviewCount: 560, priceLevel: "$$", distance: "3.2 km", openClose: "11AM - 11PM", saved: false },
+    { id: "cd5", name: "Com Ga A Hai", category: "Restaurant", img: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.4, reviewCount: 730, priceLevel: "$", distance: "1.8 km", openClose: "7AM - 8PM", saved: false },
+    { id: "cd6", name: "Madame Lan", category: "Restaurant", img: "https://images.unsplash.com/photo-1555126634-323283e090fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.5, reviewCount: 1340, priceLevel: "$$", distance: "1.1 km", openClose: "10AM - 10PM", saved: false },
+    { id: "cd7", name: "Waterfront Restaurant", category: "Restaurant", img: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.8, reviewCount: 450, priceLevel: "$$$", distance: "0.5 km", openClose: "5PM - 11PM", saved: false },
+  ],
+  hotel: [
+    { id: "cd28", name: "Hyatt Regency Da Nang", category: "Hotel", img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.7, reviewCount: 2300, priceLevel: "$$$", distance: "4.2 km", openClose: "Check-in 3PM", saved: false, avgPrice: "$180/night" },
+    { id: "cd29", name: "Naman Retreat", category: "Hotel", img: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.8, reviewCount: 1450, priceLevel: "$$$$", distance: "7.8 km", openClose: "Check-in 2PM", saved: false, avgPrice: "$320/night" },
+    { id: "cd30", name: "Fivitel Danang", category: "Hotel", img: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.5, reviewCount: 870, priceLevel: "$$", distance: "1.5 km", openClose: "Check-in 2PM", saved: false, avgPrice: "$95/night" },
+    { id: "cd31", name: "Memory Hostel", category: "Hotel", img: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 560, priceLevel: "$", distance: "0.9 km", openClose: "Check-in 1PM", saved: false, avgPrice: "$25/night" },
+    { id: "cd32", name: "Shilla Monogram", category: "Hotel", img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.9, reviewCount: 1900, priceLevel: "$$$$", distance: "3.1 km", openClose: "Check-in 3PM", saved: false, avgPrice: "$450/night" },
+  ],
+  cafe: [
+    { id: "cd8", name: "43 Factory Coffee", category: "Cafe", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.8, reviewCount: 687, priceLevel: "$$", distance: "1.2 km", openClose: "7AM - 9PM", saved: false },
+    { id: "cd9", name: "The Espresso Station", category: "Cafe", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.5, reviewCount: 280, priceLevel: "$", distance: "0.5 km", openClose: "7AM - 10PM", saved: false },
+    { id: "cd10", name: "Cong Ca Phe", category: "Cafe", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.3, reviewCount: 920, priceLevel: "$", distance: "0.9 km", openClose: "7AM - 11PM", saved: false },
+    { id: "cd11", name: "Nostalife Coffee", category: "Cafe", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 340, priceLevel: "$$", distance: "2.3 km", openClose: "8AM - 10PM", saved: false },
+  ],
+  attraction: [
+    { id: "cd12", name: "Dragon Bridge", category: "Attraction", img: "https://images.unsplash.com/photo-1583417319070-4a69db38a482?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.4, reviewCount: 2340, priceLevel: "Free", distance: "1.2 km", openClose: "Open 24h", saved: false },
+    { id: "cd13", name: "Marble Mountains", category: "Attraction", img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.7, reviewCount: 3892, priceLevel: "$", distance: "5.1 km", openClose: "7AM - 5:30PM", saved: true },
+    { id: "cd14", name: "Ba Na Hills", category: "Attraction", img: "https://images.unsplash.com/photo-1528127269322-539801943592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.6, reviewCount: 4210, priceLevel: "$$", distance: "25 km", openClose: "7AM - 10PM", saved: false },
+    { id: "cd15", name: "Lady Buddha Temple", category: "Attraction", img: "https://images.unsplash.com/photo-1528127269322-539801943592?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.8, reviewCount: 6700, priceLevel: "Free", distance: "9.2 km", openClose: "5AM - 9PM", saved: false },
+    { id: "cd16", name: "Asia Park", category: "Attraction", img: "https://images.unsplash.com/photo-1513106580091-1d82408b8cd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixlib=rb-4.1.0&q=80&w=600", rating: 4.3, reviewCount: 1890, priceLevel: "$$", distance: "3.5 km", openClose: "3PM - 10PM", saved: false },
   ],
 };
-
-// ─── Leaderboard ───────────────────────────────────────────────────────────
-
-export const LEADERBOARD: LeaderboardEntry[] = [
-  { id: "l1", name: "Sarah", avatar: "#7c3aed", initial: "S", areaPercent: 42, rank: 1 },
-  { id: "l2", name: "You (Linh)", avatar: "#ff6733", initial: "L", areaPercent: 38, rank: 2, isCurrentUser: true },
-  { id: "l3", name: "Tom", avatar: "#22c55e", initial: "T", areaPercent: 31, rank: 3 },
-  { id: "l4", name: "Mai", avatar: "#ec4899", initial: "M", areaPercent: 25, rank: 4 },
-  { id: "l5", name: "Tuan", avatar: "#3b82f6", initial: "T", areaPercent: 18, rank: 5 },
-];

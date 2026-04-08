@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import {
-  ThumbsUp,
-  ThumbsDown,
-  MessageCircle,
+  Heart,
   MapPin,
   Clock,
   Star,
@@ -12,7 +10,6 @@ import {
   ArrowUpDown,
   Map,
   Check,
-  Send,
 } from "lucide-react";
 import PhoneFrame from "../../app/components/layout/phone-frame";
 import AndroidFrame from "../../app/components/layout/android-frame";
@@ -164,64 +161,33 @@ export default function SessionLibraryScreen() {
   const [sortMode, setSortMode] = useState<SortMode>("votes");
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [voteAnimating, setVoteAnimating] = useState<string | null>(null);
-  const [commentInput, setCommentInput] = useState<Record<string, string>>({});
-  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
   const currentUserId = "m1";
 
   const sortedPlaces = [...places].sort((a, b) => {
     if (sortMode === "votes")
-      return b.upvotes.length - b.downvotes.length - (a.upvotes.length - a.downvotes.length);
-    if (sortMode === "comments") return b.comments.length - a.comments.length;
+      return b.upvotes.length - a.upvotes.length;
     return 0; // recent = natural order
   });
 
-  const handleVote = (placeId: string, type: "up" | "down") => {
-    setVoteAnimating(`${placeId}-${type}`);
+  const handleLike = (placeId: string) => {
+    setVoteAnimating(placeId);
     setTimeout(() => setVoteAnimating(null), 400);
 
     setPlaces((prev) =>
       prev.map((p) => {
         if (p.id !== placeId) return p;
-        const alreadyUp = p.upvotes.includes(currentUserId);
-        const alreadyDown = p.downvotes.includes(currentUserId);
-        let upvotes = [...p.upvotes];
-        let downvotes = [...p.downvotes];
-
-        if (type === "up") {
-          if (alreadyUp) upvotes = upvotes.filter((id) => id !== currentUserId);
-          else {
-            upvotes.push(currentUserId);
-            downvotes = downvotes.filter((id) => id !== currentUserId);
-          }
-        } else {
-          if (alreadyDown) downvotes = downvotes.filter((id) => id !== currentUserId);
-          else {
-            downvotes.push(currentUserId);
-            upvotes = upvotes.filter((id) => id !== currentUserId);
-          }
-        }
-        return { ...p, upvotes, downvotes };
+        const alreadyLiked = p.upvotes.includes(currentUserId);
+        const upvotes = alreadyLiked
+          ? p.upvotes.filter((id) => id !== currentUserId)
+          : [...p.upvotes, currentUserId];
+        return { ...p, upvotes };
       })
     );
   };
 
-  const handleAddComment = (placeId: string) => {
-    const text = commentInput[placeId]?.trim();
-    if (!text) return;
-    setPlaces((prev) =>
-      prev.map((p) =>
-        p.id === placeId
-          ? { ...p, comments: [...p.comments, { memberId: currentUserId, text, time: "Just now" }] }
-          : p
-      )
-    );
-    setCommentInput((prev) => ({ ...prev, [placeId]: "" }));
-  };
-
   const SORT_OPTIONS: { value: SortMode; label: string }[] = [
-    { value: "votes", label: "Most Votes" },
+    { value: "votes", label: "Most Liked" },
     { value: "recent", label: "Recently Added" },
-    { value: "comments", label: "Most Comments" },
   ];
 
   return (
@@ -295,11 +261,8 @@ export default function SessionLibraryScreen() {
           {/* Place Cards */}
           <div className="flex flex-col gap-[12px] px-[16px] py-[14px]">
             {sortedPlaces.map((place) => {
-              const netVotes = place.upvotes.length - place.downvotes.length;
-              const hasUpvoted = place.upvotes.includes(currentUserId);
-              const hasDownvoted = place.downvotes.includes(currentUserId);
+              const hasLiked = place.upvotes.includes(currentUserId);
               const addedByMember = MEMBERS.find((m) => m.id === place.addedBy);
-              const isExpanded = expandedComments.has(place.id);
 
               return (
                 <div
@@ -334,65 +297,30 @@ export default function SessionLibraryScreen() {
                     </div>
                   </div>
 
-                  {/* Voting Row */}
-                  <div className="flex items-center gap-[6px] border-b border-[#f5f5f5] px-[14px] py-[10px]">
-                    {/* Upvote */}
+                  {/* Likes Row */}
+                  <div className="flex items-center gap-[6px] px-[14px] py-[10px]">
                     <button
-                      onClick={() => handleVote(place.id, "up")}
+                      onClick={() => handleLike(place.id)}
                       className={`flex items-center gap-[5px] rounded-full px-[12px] py-[6px] transition-all duration-200 active:scale-95 ${
-                        hasUpvoted
-                          ? "bg-[#34c759]/10 text-[#34c759]"
+                        hasLiked
+                          ? "bg-[#ff4466]/10 text-[#ff4466]"
                           : "bg-[#f5f5f5] text-[#949493]"
                       }`}
                       style={{
-                        transform: voteAnimating === `${place.id}-up` ? "scale(1.1)" : undefined,
+                        transform: voteAnimating === place.id ? "scale(1.1)" : undefined,
                       }}
                     >
-                      <ThumbsUp
+                      <Heart
                         size={15}
                         strokeWidth={2.2}
-                        fill={hasUpvoted ? "#34c759" : "none"}
+                        fill={hasLiked ? "#ff4466" : "none"}
                       />
                       <p className="text-[13px] font-bold tabular-nums">
                         {place.upvotes.length}
                       </p>
                     </button>
-                    {/* Downvote */}
-                    <button
-                      onClick={() => handleVote(place.id, "down")}
-                      className={`flex items-center gap-[5px] rounded-full px-[12px] py-[6px] transition-all duration-200 active:scale-95 ${
-                        hasDownvoted
-                          ? "bg-[#ff3b30]/10 text-[#ff3b30]"
-                          : "bg-[#f5f5f5] text-[#949493]"
-                      }`}
-                      style={{
-                        transform: voteAnimating === `${place.id}-down` ? "scale(1.1)" : undefined,
-                      }}
-                    >
-                      <ThumbsDown
-                        size={15}
-                        strokeWidth={2.2}
-                        fill={hasDownvoted ? "#ff3b30" : "none"}
-                      />
-                      <p className="text-[13px] font-bold tabular-nums">
-                        {place.downvotes.length}
-                      </p>
-                    </button>
-                    {/* Net score */}
+                    {/* Liker avatars */}
                     <div className="ml-auto flex items-center gap-[6px]">
-                      <div
-                        className={`rounded-full px-[10px] py-[4px] text-[12px] font-bold ${
-                          netVotes > 0
-                            ? "bg-[#34c759]/10 text-[#34c759]"
-                            : netVotes < 0
-                            ? "bg-[#ff3b30]/10 text-[#ff3b30]"
-                            : "bg-[#f5f5f5] text-[#949493]"
-                        }`}
-                      >
-                        {netVotes > 0 ? "+" : ""}
-                        {netVotes}
-                      </div>
-                      {/* Voter avatars */}
                       <div className="flex -space-x-[5px]">
                         {place.upvotes.slice(0, 3).map((mId) => {
                           const m = MEMBERS.find((mm) => mm.id === mId);
@@ -409,95 +337,15 @@ export default function SessionLibraryScreen() {
                     </div>
                   </div>
 
-                  {/* Comments Section */}
-                  <div className="px-[14px] py-[10px]">
-                    {/* Comment preview */}
-                    {place.comments.length > 0 && (
-                      <div className="flex flex-col gap-[8px]">
-                        {(isExpanded ? place.comments : place.comments.slice(-2)).map(
-                          (comment, i) => {
-                            const member = MEMBERS.find(
-                              (m) => m.id === comment.memberId
-                            );
-                            return (
-                              <div key={i} className="flex items-start gap-[8px]">
-                                <img
-                                  src={member?.avatar || AVATARS[0]}
-                                  alt={member?.name || ""}
-                                  className="mt-[2px] size-[22px] shrink-0 rounded-full object-cover"
-                                />
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-[12px] leading-[17px] text-[#545352]">
-                                    <span className="font-semibold text-[#292827]">
-                                      {member?.name?.split(" ")[0] || "User"}
-                                    </span>{" "}
-                                    {comment.text}
-                                  </p>
-                                  <p className="mt-[1px] text-[10px] text-[#b4b4b3]">
-                                    {comment.time}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          }
-                        )}
-                        {place.comments.length > 2 && !isExpanded && (
-                          <button
-                            onClick={() =>
-                              setExpandedComments((prev) => new Set([...prev, place.id]))
-                            }
-                            className="text-left text-[12px] font-medium text-[#949493]"
-                          >
-                            View all {place.comments.length} comments
-                          </button>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Add comment input */}
-                    <div className="mt-[8px] flex items-center gap-[8px]">
-                      <img
-                        src={AVATARS[0]}
-                        alt="You"
-                        className="size-[24px] shrink-0 rounded-full object-cover"
-                      />
-                      <div className="flex min-w-0 flex-1 items-center rounded-full bg-[#f5f5f5] px-[12px] py-[7px]">
-                        <input
-                          type="text"
-                          placeholder="Add a comment..."
-                          value={commentInput[place.id] || ""}
-                          onChange={(e) =>
-                            setCommentInput((prev) => ({
-                              ...prev,
-                              [place.id]: e.target.value,
-                            }))
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleAddComment(place.id);
-                          }}
-                          className="min-w-0 flex-1 bg-transparent text-[12px] font-medium text-[#292827] outline-none placeholder:text-[#b4b4b3]"
-                        />
-                        {commentInput[place.id]?.trim() && (
-                          <button
-                            onClick={() => handleAddComment(place.id)}
-                            className="ml-[6px] text-[#ff6733] transition-all active:scale-95"
-                          >
-                            <Send size={14} strokeWidth={2.5} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Added by */}
-                    <div className="mt-[8px] flex items-center gap-[4px]">
-                      <p className="text-[10px] text-[#b4b4b3]">
-                        Added by{" "}
-                        <span className="font-medium text-[#949493]">
-                          {addedByMember?.name?.split("(")[0]?.trim() || "Unknown"}
-                        </span>{" "}
-                        · {place.addedAt}
-                      </p>
-                    </div>
+                  {/* Added by */}
+                  <div className="border-t border-[#f5f5f5] px-[14px] py-[8px]">
+                    <p className="text-[10px] text-[#b4b4b3]">
+                      Added by{" "}
+                      <span className="font-medium text-[#949493]">
+                        {addedByMember?.name?.split("(")[0]?.trim() || "Unknown"}
+                      </span>{" "}
+                      · {place.addedAt}
+                    </p>
                   </div>
                 </div>
               );
