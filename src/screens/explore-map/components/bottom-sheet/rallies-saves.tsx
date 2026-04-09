@@ -4,10 +4,6 @@ import {
   Heart,
   Star,
   MapPin,
-  Bookmark,
-  Share2,
-  Pencil,
-  Tag,
 } from "lucide-react";
 import type { RallySession, RallyPlace } from "../../types";
 
@@ -15,13 +11,41 @@ type Props = {
   sessions: RallySession[];
 };
 
+const CURRENT_USER = "m1";
+
 export default function RalliesSaves({ sessions }: Props) {
   const [selectedSession, setSelectedSession] = useState<RallySession | null>(null);
+  const [likeOverrides, setLikeOverrides] = useState<Record<string, boolean>>({});
+
+  const toggleLike = (placeId: string, currentlyLiked: boolean) => {
+    setLikeOverrides((prev) => ({ ...prev, [placeId]: !currentlyLiked }));
+    // Also update the selected session data so the UI reflects the change
+    if (selectedSession) {
+      setSelectedSession((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          places: prev.places.map((p) => {
+            if (p.id !== placeId) return p;
+            const isLiked = likeOverrides[placeId] ?? p.upvotes.includes(CURRENT_USER);
+            return {
+              ...p,
+              upvotes: isLiked
+                ? p.upvotes.filter((id) => id !== CURRENT_USER)
+                : [...p.upvotes, CURRENT_USER],
+            };
+          }),
+        };
+      });
+    }
+  };
+
   if (selectedSession) {
     return (
       <SessionDetail
         session={selectedSession}
-        onBack={() => setSelectedSession(null)}
+        onLike={toggleLike}
+        onBack={() => { setSelectedSession(null); setLikeOverrides({}); }}
       />
     );
   }
@@ -167,48 +191,30 @@ function PlaceCard({
             <MapPin size={10} />
             {place.address}
           </div>
-          {/* Tags */}
-          {place.tags && place.tags.length > 0 && (
-            <div className="mt-[2px] flex gap-[4px]">
-              {place.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="flex items-center gap-[2px] rounded-full bg-[#f5f5f5] px-[6px] py-[2px] text-[9px] font-medium text-[#545352]"
-                >
-                  <Tag size={8} />
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Notes */}
-      {place.notes && (
-        <div className="mx-[10px] rounded-[8px] bg-[#f8f7f5] px-[10px] py-[6px] text-[11px] italic text-[#545352]">
-          "{place.notes}"
-        </div>
-      )}
-
-      {/* Likes + Actions */}
+      {/* Likes + avatars */}
       <div className="flex items-center justify-between border-t border-[#eaeae9]/60 px-[10px] py-[8px]">
         <button className="flex items-center gap-[4px] rounded-full bg-[#ff4466]/10 px-[10px] py-[5px] transition-all active:scale-95">
           <Heart size={13} className="fill-[#ff4466] text-[#ff4466]" />
           <span className="text-[11px] font-semibold text-[#ff4466]">{likeCount}</span>
         </button>
-
-        <div className="flex items-center gap-[6px]">
-          <button className="rounded-full p-[5px] transition-all active:scale-90">
-            <Bookmark size={14} className="text-[#949493]" />
-          </button>
-          <button className="rounded-full p-[5px] transition-all active:scale-90">
-            <Pencil size={14} className="text-[#949493]" />
-          </button>
-          <button className="rounded-full p-[5px] transition-all active:scale-90">
-            <Share2 size={14} className="text-[#949493]" />
-          </button>
-        </div>
+        {likeCount > 0 && (
+          <div className="flex -space-x-[5px]">
+            {place.upvotes.slice(0, 4).map((mId) => {
+              const m = getMember(mId);
+              return m ? (
+                <img key={m.id} src={m.avatar} alt={m.name} className="size-[20px] rounded-full border-[1.5px] border-white object-cover" />
+              ) : null;
+            })}
+            {place.upvotes.length > 4 && (
+              <div className="flex size-[20px] items-center justify-center rounded-full border-[1.5px] border-white bg-[#eaeae9] text-[8px] font-bold text-[#545352]">
+                +{place.upvotes.length - 4}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Added by */}

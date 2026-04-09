@@ -18,7 +18,7 @@ const TABS: { id: BottomSheetTab; label: string; icon: typeof Compass }[] = [
 const SNAP_POSITIONS: Record<BottomSheetSnap, number> = {
   collapsed: 130,  // shows drag handle + tab bar above bottom nav
   half: 340,
-  full: 540,  // leaves space for search bar + category chips at top
+  full: 628,  // nearly full — small gap below status bar
 };
 
 export default function BottomSheet({ activeTab, onTabChange, snap, onSnapChange, children }: Props) {
@@ -37,7 +37,7 @@ export default function BottomSheet({ activeTab, onTabChange, snap, onSnapChange
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragRef.current?.isDragging) return;
     const delta = dragRef.current.startY - e.clientY;
-    setCurrentHeight(Math.max(130, Math.min(540, dragRef.current.startHeight + delta)));
+    setCurrentHeight(Math.max(130, Math.min(628, dragRef.current.startHeight + delta)));
   }, []);
 
   const handlePointerUp = useCallback(() => {

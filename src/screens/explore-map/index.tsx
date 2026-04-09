@@ -191,7 +191,7 @@ export default function ExploreMapScreen() {
           <CategoryChips categories={CATEGORIES} activeCategory={activeCategory} onChange={handleCategoryChange} />
 
           {!selectedPlace && (
-            <div className="absolute right-[16px] z-20 flex flex-col gap-[8px]" style={{ bottom: sheetSnap === "collapsed" ? 146 : sheetSnap === "half" ? 356 : 556, transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
+            <div className="absolute right-[16px] z-20 flex flex-col gap-[8px]" style={{ bottom: sheetSnap === "collapsed" ? 146 : sheetSnap === "half" ? 356 : 644, transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
               {/* Zoom controls */}
               <div className="flex flex-col overflow-hidden rounded-full bg-white" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>
                 <button
