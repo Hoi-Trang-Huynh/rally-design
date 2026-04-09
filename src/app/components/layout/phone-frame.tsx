@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router";
 import {
   Home,
@@ -106,11 +106,17 @@ const NAV_ITEMS = [
 
 type NavTab = "home" | "chat" | "create" | "explore" | "profile";
 
-function BottomNav({ activeTab }: { activeTab?: NavTab }) {
+function BottomNav({ activeTab, hidden, overlay }: { activeTab?: NavTab; hidden?: boolean; overlay?: boolean }) {
   const navigate = useNavigate();
 
   return (
-    <div className="shrink-0 border-t border-[#eaeae9]/60 bg-white pb-[28px] pt-[8px]">
+    <div
+      className={`border-t border-[#eaeae9]/60 bg-white pb-[28px] pt-[8px] ${overlay ? "absolute bottom-0 left-0 right-0 z-40" : "shrink-0"}`}
+      style={{
+        transform: hidden ? "translateY(100%)" : "translateY(0)",
+        transition: "transform 250ms ease-in-out",
+      }}
+    >
       <div className="flex items-center justify-around px-[8px]">
         {NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.id;
@@ -165,6 +171,7 @@ type PhoneFrameProps = {
   children: ReactNode;
   activeTab?: NavTab;
   showBottomNav?: boolean;
+  hideBottomNavOnScroll?: boolean;
   headerTitle?: string;
   headerBreadcrumb?: string;
   onBack?: () => void;
@@ -176,12 +183,31 @@ export default function PhoneFrame({
   children,
   activeTab,
   showBottomNav = true,
+  hideBottomNavOnScroll = false,
   headerTitle,
   headerBreadcrumb,
   onBack,
   showHeader = true,
   headerRightAction,
 }: PhoneFrameProps) {
+  const [navHidden, setNavHidden] = useState(false);
+  const lastScrollTop = useRef(0);
+
+  const handleScroll = useCallback(
+    (e: React.UIEvent<HTMLDivElement>) => {
+      if (!hideBottomNavOnScroll) return;
+      const target = e.target as HTMLElement;
+      const scrollTop = target.scrollTop;
+      if (scrollTop > lastScrollTop.current && scrollTop > 10) {
+        setNavHidden(true);  // scrolling down
+      } else {
+        setNavHidden(false); // scrolling up
+      }
+      lastScrollTop.current = scrollTop;
+    },
+    [hideBottomNavOnScroll]
+  );
+
   return (
     <div className={`relative flex size-full flex-col bg-white ${FONT}`}>
       <Toaster position="top-center" richColors />
@@ -193,8 +219,13 @@ export default function PhoneFrame({
           rightAction={headerRightAction}
         />
       )}
-      <div className="relative flex-1 overflow-hidden">{children}</div>
-      {showBottomNav && <BottomNav activeTab={activeTab} />}
+      <div
+        className="relative flex-1 overflow-hidden"
+        onScrollCapture={handleScroll}
+      >
+        {children}
+      </div>
+      {showBottomNav && <BottomNav activeTab={activeTab} hidden={hideBottomNavOnScroll && navHidden} overlay={hideBottomNavOnScroll} />}
     </div>
   );
 }

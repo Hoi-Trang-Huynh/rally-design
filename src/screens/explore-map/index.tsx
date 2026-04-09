@@ -35,6 +35,8 @@ export default function ExploreMapScreen() {
 
   const [exploreViewMode, setExploreViewMode] = useState<ExploreViewMode>("overview");
   const [activeCategoryDetail, setActiveCategoryDetail] = useState<string | null>(null);
+  const [trendingMode, setTrendingMode] = useState(false);
+  const [showMyLocation, setShowMyLocation] = useState(false);
 
   const [exploreSections, setExploreSections] = useState(EXPLORE_SECTIONS);
 
@@ -42,6 +44,7 @@ export default function ExploreMapScreen() {
   const [newCollectionName, setNewCollectionName] = useState("");
 
   const filteredPlaces = places.filter((p) => {
+    if (trendingMode) return !!p.trending;
     const matchCategory = activeCategory === "all" || p.category === activeCategory;
     const matchSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.category.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCategory && matchSearch;
@@ -88,14 +91,15 @@ export default function ExploreMapScreen() {
   };
 
   const handleTrendingOnMaps = () => {
+    setTrendingMode(true);
     setActiveCategory("all");
-    setExploreViewMode("overview");
-    setActiveCategoryDetail(null);
-    setSheetSnap("collapsed");
-    toast.success("Showing trending places on map");
+    setExploreViewMode("category-detail");
+    setActiveCategoryDetail("trending");
+    setSheetSnap("half");
   };
 
   const handleCategoryChange = (categoryId: string) => {
+    setTrendingMode(false);
     setActiveCategory(categoryId);
     if (categoryId === "all") {
       setExploreViewMode("overview");
@@ -107,34 +111,88 @@ export default function ExploreMapScreen() {
     }
   };
 
-  const handleCategoryBack = () => { setExploreViewMode("overview"); setActiveCategoryDetail(null); setActiveCategory("all"); };
+  const handleCategoryBack = () => { setExploreViewMode("overview"); setActiveCategoryDetail(null); setActiveCategory("all"); setTrendingMode(false); };
 
   const handleSeeMore = (sectionId: string) => {
-    const map: Record<string, string> = { trending: "all", eat: "restaurant", play: "attraction", community: "all", stay: "hotel" };
+    if (sectionId === "trending") {
+      handleTrendingOnMaps();
+      return;
+    }
+    const map: Record<string, string> = { eat: "restaurant", play: "attraction", community: "attraction", stay: "hotel" };
     handleCategoryChange(map[sectionId] || "all");
   };
 
+  const handleCardTap = (cardId: string) => {
+    // Find matching map place by name and open the detail sheet
+    const card = exploreSections.flatMap((s) => s.cards).find((c) => c.id === cardId);
+    if (!card) return;
+    const matchingPlace = places.find((p) => p.name.includes(card.name) || card.name.includes(p.name));
+    if (matchingPlace) {
+      setSelectedPlace(matchingPlace);
+    } else {
+      // Show a toast with the card info if no matching map place
+      toast(`${card.name} — ${card.rating} · ${card.priceLevel} · ${card.openClose}`);
+    }
+  };
+
   const activeCategoryConfig = CATEGORY_FILTERS.find((f) => f.categoryId === activeCategoryDetail);
-  const activeCategoryLabel = CATEGORIES.find((c) => c.id === activeCategoryDetail)?.label ?? "";
-  const categoryDetailCards = activeCategoryDetail ? CATEGORY_DETAIL_CARDS[activeCategoryDetail] ?? [] : [];
+  const activeCategoryLabel = activeCategoryDetail === "trending"
+    ? "Trending Places"
+    : CATEGORIES.find((c) => c.id === activeCategoryDetail)?.label ?? "";
+  const categoryDetailCards = activeCategoryDetail === "trending"
+    ? exploreSections.find((s) => s.id === "trending")?.cards ?? []
+    : activeCategoryDetail ? CATEGORY_DETAIL_CARDS[activeCategoryDetail] ?? [] : [];
   const savedCards = exploreSections.flatMap((s) => s.cards).filter((c) => c.saved);
 
   return (
     <AndroidFrame>
-      <PhoneFrame activeTab="explore" showHeader={false} showBottomNav={!selectedPlace}>
+      <PhoneFrame activeTab="explore" showHeader={false} showBottomNav={!selectedPlace} hideBottomNavOnScroll>
         <div className="relative size-full overflow-hidden">
           <div className="absolute inset-0 bg-[#e8e4df]">
             <ExploreMapBg />
-            <MapPins places={filteredPlaces} selectedId={selectedPlace?.id ?? null} onSelect={handleSelectPlace} />
+            <MapPins places={filteredPlaces} selectedId={selectedPlace?.id ?? null} onSelect={handleSelectPlace} showRatings={trendingMode} />
           </div>
 
-          <SearchBar query={searchQuery} onChange={setSearchQuery} onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)} />
+          <SearchBar
+            query={searchQuery}
+            onChange={setSearchQuery}
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            results={filteredPlaces}
+            focused={searchFocused}
+            onSelectResult={(place) => {
+              setSelectedPlace(place);
+              setSearchQuery("");
+              setSearchFocused(false);
+            }}
+          />
           <CategoryChips categories={CATEGORIES} activeCategory={activeCategory} onChange={handleCategoryChange} />
 
+          {/* My location blue dot */}
+          {showMyLocation && (
+            <div className="absolute z-[15]" style={{ left: "50%", top: "45%", transform: "translate(-50%, -50%)" }}>
+              <div className="relative flex items-center justify-center">
+                <div className="absolute size-[48px] animate-ping rounded-full bg-[#4285f4]/20" style={{ animationDuration: "2s" }} />
+                <div className="absolute size-[32px] rounded-full bg-[#4285f4]/10" />
+                <div className="relative size-[14px] rounded-full border-[2.5px] border-white bg-[#4285f4]" style={{ boxShadow: "0 2px 8px rgba(66,133,244,0.5)" }} />
+              </div>
+            </div>
+          )}
+
           {!selectedPlace && (
-            <div className="absolute right-[16px] z-20" style={{ bottom: sheetSnap === "collapsed" ? 96 : sheetSnap === "half" ? 356 : 596, transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
-              <button className="flex size-[44px] items-center justify-center rounded-full bg-white transition-all active:scale-95" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>
-                <Navigation size={20} className="text-[#ff6733]" strokeWidth={2} />
+            <div className="absolute right-[16px] z-20" style={{ bottom: sheetSnap === "collapsed" ? 146 : sheetSnap === "half" ? 356 : 556, transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
+              <button
+                onClick={() => {
+                  setShowMyLocation((v) => !v);
+                  toast[showMyLocation ? "info" : "success"](showMyLocation ? "Location hidden" : "Showing your location");
+                }}
+                className="flex size-[44px] items-center justify-center rounded-full bg-white transition-all active:scale-95"
+                style={{
+                  boxShadow: showMyLocation ? "0 2px 12px rgba(66,133,244,0.3)" : "0 2px 12px rgba(0,0,0,0.12)",
+                  border: showMyLocation ? "2px solid #4285f4" : "none",
+                }}
+              >
+                <Navigation size={20} className={showMyLocation ? "text-[#4285f4]" : "text-[#ff6733]"} strokeWidth={2} />
               </button>
             </div>
           )}
@@ -142,7 +200,7 @@ export default function ExploreMapScreen() {
           {!selectedPlace && (
             <BottomSheet activeTab={sheetTab} onTabChange={setSheetTab} snap={sheetSnap} onSnapChange={setSheetSnap}>
               {sheetTab === "explore" && (
-                <ExploreTab sections={exploreSections} communityCollections={COMMUNITY_COLLECTIONS} onSaveCard={handleExploreCardSave} onTrendingOnMaps={handleTrendingOnMaps}
+                <ExploreTab sections={exploreSections} communityCollections={COMMUNITY_COLLECTIONS} onSaveCard={handleExploreCardSave} onCardTap={handleCardTap} onTrendingOnMaps={handleTrendingOnMaps}
                   viewMode={exploreViewMode} activeCategoryId={activeCategoryDetail} activeCategoryLabel={activeCategoryLabel}
                   categoryFilters={activeCategoryConfig?.filters ?? []} categoryCards={categoryDetailCards} onCategoryBack={handleCategoryBack} onSeeMore={handleSeeMore} />
               )}

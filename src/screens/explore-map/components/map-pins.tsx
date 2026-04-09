@@ -1,4 +1,4 @@
-import { MapPin, Bookmark } from "lucide-react";
+import { MapPin, Bookmark, Star } from "lucide-react";
 import type { MapPlace } from "../types";
 import { CATEGORY_COLORS } from "../data";
 
@@ -6,9 +6,10 @@ type MapPinsProps = {
   places: MapPlace[];
   selectedId: string | null;
   onSelect: (place: MapPlace) => void;
+  showRatings?: boolean;
 };
 
-export default function MapPins({ places, selectedId, onSelect }: MapPinsProps) {
+export default function MapPins({ places, selectedId, onSelect, showRatings }: MapPinsProps) {
   return (
     <>
       {places.map((place) => {
@@ -61,6 +62,14 @@ export default function MapPins({ places, selectedId, onSelect }: MapPinsProps) 
               <div className="absolute left-1/2 top-[-36px] -translate-x-1/2 whitespace-nowrap rounded-[8px] bg-[#292827] px-[10px] py-[5px]">
                 <p className="text-[11px] font-semibold text-white">{place.name}</p>
                 <div className="absolute bottom-[-4px] left-1/2 size-[8px] -translate-x-1/2 rotate-45 bg-[#292827]" />
+              </div>
+            )}
+            {/* Rating badge (trending mode) */}
+            {showRatings && !isSelected && (
+              <div className="absolute left-1/2 top-[48px] flex -translate-x-1/2 items-center gap-[2px] whitespace-nowrap rounded-full bg-white px-[6px] py-[2px]"
+                style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
+                <Star size={9} className="fill-[#f59e0b] text-[#f59e0b]" />
+                <span className="text-[9px] font-bold text-[#292827]">{place.rating}</span>
               </div>
             )}
           </button>

@@ -4,13 +4,15 @@ import type { EventCard as EventCardType } from "../../types";
 type Props = {
   card: EventCardType;
   onSave: (id: string) => void;
+  onTap?: (id: string) => void;
   showPrice?: boolean; // for "Where to Stay"
 };
 
-export default function EventCard({ card, onSave, showPrice }: Props) {
+export default function EventCard({ card, onSave, onTap, showPrice }: Props) {
   return (
     <div
-      className="relative flex w-[200px] shrink-0 snap-start flex-col overflow-hidden rounded-[14px] bg-white"
+      onClick={() => onTap?.(card.id)}
+      className="relative flex w-[200px] shrink-0 snap-start cursor-pointer flex-col overflow-hidden rounded-[14px] bg-white transition-all active:scale-[0.97]"
       style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)" }}
     >
       {/* Image */}

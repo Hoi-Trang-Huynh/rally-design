@@ -8,6 +8,7 @@ type Props = {
   sections: ExploreSection[];
   communityCollections: CommunityCollection[];
   onSaveCard: (id: string) => void;
+  onCardTap: (cardId: string) => void;
   onTrendingOnMaps: () => void;
   viewMode: ExploreViewMode;
   activeCategoryId: string | null;
@@ -19,7 +20,7 @@ type Props = {
 };
 
 export default function ExploreTab({
-  sections, communityCollections, onSaveCard, onTrendingOnMaps,
+  sections, communityCollections, onSaveCard, onCardTap, onTrendingOnMaps,
   viewMode, activeCategoryId, activeCategoryLabel, categoryFilters, categoryCards, onCategoryBack, onSeeMore,
 }: Props) {
   if (viewMode === "category-detail" && activeCategoryId) {
@@ -72,7 +73,7 @@ export default function ExploreTab({
           ) : (
             <div className="scrollbar-hide flex snap-x snap-mandatory gap-[10px] overflow-x-auto px-[16px]">
               {section.cards.map((card) => (
-                <EventCard key={card.id} card={card} onSave={onSaveCard} showPrice={section.id === "stay"} />
+                <EventCard key={card.id} card={card} onSave={onSaveCard} onTap={onCardTap} showPrice={section.id === "stay"} />
               ))}
             </div>
           )}
