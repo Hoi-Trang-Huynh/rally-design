@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Navigation, X, Check, Image } from "lucide-react";
+import { Navigation, X, Check, Image, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 import AndroidFrame from "../../app/components/layout/android-frame";
 import PhoneFrame from "../../app/components/layout/phone-frame";
@@ -37,6 +37,7 @@ export default function ExploreMapScreen() {
   const [activeCategoryDetail, setActiveCategoryDetail] = useState<string | null>(null);
   const [trendingMode, setTrendingMode] = useState(false);
   const [showMyLocation, setShowMyLocation] = useState(false);
+  const [mapZoom, setMapZoom] = useState(1);
 
   const [exploreSections, setExploreSections] = useState(EXPLORE_SECTIONS);
 
@@ -148,9 +149,30 @@ export default function ExploreMapScreen() {
     <AndroidFrame>
       <PhoneFrame activeTab="explore" showHeader={false} showBottomNav={!selectedPlace} hideBottomNavOnScroll>
         <div className="relative size-full overflow-hidden">
-          <div className="absolute inset-0 bg-[#e8e4df]">
-            <ExploreMapBg />
-            <MapPins places={filteredPlaces} selectedId={selectedPlace?.id ?? null} onSelect={handleSelectPlace} showRatings={trendingMode} />
+          <div className="absolute inset-0 overflow-auto bg-[#e8e4df]">
+            <div
+              className="relative origin-center"
+              style={{
+                width: `${100 * mapZoom}%`,
+                height: `${100 * mapZoom}%`,
+                minWidth: "100%",
+                minHeight: "100%",
+                transition: "width 300ms ease-out, height 300ms ease-out",
+              }}
+            >
+              <ExploreMapBg />
+              <MapPins places={filteredPlaces} selectedId={selectedPlace?.id ?? null} onSelect={handleSelectPlace} showRatings={trendingMode} />
+              {/* My location blue dot */}
+              {showMyLocation && (
+                <div className="absolute" style={{ left: "50%", top: "45%", transform: "translate(-50%, -50%)" }}>
+                  <div className="relative flex items-center justify-center">
+                    <div className="absolute size-[48px] animate-ping rounded-full bg-[#4285f4]/20" style={{ animationDuration: "2s" }} />
+                    <div className="absolute size-[32px] rounded-full bg-[#4285f4]/10" />
+                    <div className="relative size-[14px] rounded-full border-[2.5px] border-white bg-[#4285f4]" style={{ boxShadow: "0 2px 8px rgba(66,133,244,0.5)" }} />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <SearchBar
@@ -168,19 +190,25 @@ export default function ExploreMapScreen() {
           />
           <CategoryChips categories={CATEGORIES} activeCategory={activeCategory} onChange={handleCategoryChange} />
 
-          {/* My location blue dot */}
-          {showMyLocation && (
-            <div className="absolute z-[15]" style={{ left: "50%", top: "45%", transform: "translate(-50%, -50%)" }}>
-              <div className="relative flex items-center justify-center">
-                <div className="absolute size-[48px] animate-ping rounded-full bg-[#4285f4]/20" style={{ animationDuration: "2s" }} />
-                <div className="absolute size-[32px] rounded-full bg-[#4285f4]/10" />
-                <div className="relative size-[14px] rounded-full border-[2.5px] border-white bg-[#4285f4]" style={{ boxShadow: "0 2px 8px rgba(66,133,244,0.5)" }} />
-              </div>
-            </div>
-          )}
-
           {!selectedPlace && (
-            <div className="absolute right-[16px] z-20" style={{ bottom: sheetSnap === "collapsed" ? 146 : sheetSnap === "half" ? 356 : 556, transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
+            <div className="absolute right-[16px] z-20 flex flex-col gap-[8px]" style={{ bottom: sheetSnap === "collapsed" ? 146 : sheetSnap === "half" ? 356 : 556, transition: "bottom 0.3s cubic-bezier(0.32, 0.72, 0, 1)" }}>
+              {/* Zoom controls */}
+              <div className="flex flex-col overflow-hidden rounded-full bg-white" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>
+                <button
+                  onClick={() => setMapZoom((z) => Math.min(2.5, z + 0.25))}
+                  className="flex size-[40px] items-center justify-center transition-all active:scale-95 active:bg-[#f5f5f5]"
+                >
+                  <Plus size={18} className="text-[#545352]" strokeWidth={2} />
+                </button>
+                <div className="mx-[8px] h-[0.5px] bg-[#eaeae9]" />
+                <button
+                  onClick={() => setMapZoom((z) => Math.max(0.5, z - 0.25))}
+                  className="flex size-[40px] items-center justify-center transition-all active:scale-95 active:bg-[#f5f5f5]"
+                >
+                  <Minus size={18} className="text-[#545352]" strokeWidth={2} />
+                </button>
+              </div>
+              {/* Current location FAB */}
               <button
                 onClick={() => {
                   setShowMyLocation((v) => !v);
