@@ -224,7 +224,7 @@ export default function SaveDestinationPicker({ placeName, onClose, onSave, onUn
             <button onClick={() => setStep("details")} disabled={selectedSessionIds.length === 0}
               className="mt-[12px] flex h-[44px] w-full items-center justify-center rounded-full bg-[#ff6733] text-[14px] font-medium text-white transition-all duration-150 active:scale-[0.99] active:bg-[#e55a28] disabled:opacity-40"
               style={{ boxShadow: "0 2px 12px rgba(255,103,51,0.35)" }}>
-              Continue ({selectedSessionIds.length} selected)
+              Save ({selectedSessionIds.length} selected)
             </button>
           </div>
         )}
