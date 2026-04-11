@@ -29,6 +29,7 @@ export default function ExploreMapScreen() {
 
   const [showSavePicker, setShowSavePicker] = useState(false);
   const [savingPlaceId, setSavingPlaceId] = useState<string | null>(null);
+  const [savedCollectionsMap, setSavedCollectionsMap] = useState<Record<string, string[]>>({});
 
   const [sheetSnap, setSheetSnap] = useState<BottomSheetSnap>("half");
   const [sheetTab, setSheetTab] = useState<BottomSheetTab>("explore");
@@ -54,41 +55,42 @@ export default function ExploreMapScreen() {
   const handleSelectPlace = (place: MapPlace) => setSelectedPlace(place);
 
   const handleSaveButtonTap = (placeId: string) => {
-    const place = places.find((p) => p.id === placeId);
-    if (place?.saved) {
-      setPlaces((prev) => prev.map((p) => (p.id === placeId ? { ...p, saved: false } : p)));
-      if (selectedPlace?.id === placeId) setSelectedPlace((prev) => (prev ? { ...prev, saved: false } : null));
-      toast.info("Removed from library");
-    } else {
-      setSavingPlaceId(placeId);
-      setShowSavePicker(true);
-    }
+    setSavingPlaceId(placeId);
+    setShowSavePicker(true);
   };
 
-  const handleSaveConfirm = (destination: "personal" | "shared", notes: string, tags: string[], _collectionId?: string | null, _sessionIds?: string[]) => {
+  const handleSaveConfirm = (destination: "personal" | "shared", notes: string, tags: string[], _collectionId?: string | null, _sessionIds?: string[], _collectionIds?: string[]) => {
     if (!savingPlaceId) return;
-    // Mark map place as saved (if it's a map place)
+    // Mark map place as saved
     setPlaces((prev) => prev.map((p) => (p.id === savingPlaceId ? { ...p, saved: true } : p)));
     if (selectedPlace?.id === savingPlaceId) setSelectedPlace((prev) => (prev ? { ...prev, saved: true } : null));
-    // Mark explore card as saved (if it's an explore card)
+    // Mark explore card as saved
     setExploreSections((prev) => prev.map((section) => ({ ...section, cards: section.cards.map((c) => c.id === savingPlaceId ? { ...c, saved: true } : c) })));
-    const name = places.find((p) => p.id === savingPlaceId)?.name || exploreSections.flatMap((s) => s.cards).find((c) => c.id === savingPlaceId)?.name || "";
-    toast.success(`"${name}" saved to ${destination === "personal" ? "Personal Library" : "Shared Session Library"}`);
+    // Track which collections (personal toast is handled by the picker)
+    if (destination === "personal" && _collectionIds) {
+      setSavedCollectionsMap((prev) => ({ ...prev, [savingPlaceId]: _collectionIds }));
+    }
+    if (destination === "shared") {
+      const name = places.find((p) => p.id === savingPlaceId)?.name || exploreSections.flatMap((s) => s.cards).find((c) => c.id === savingPlaceId)?.name || "";
+      toast.success(`"${name}" saved to Shared Session Library`);
+    }
+    setShowSavePicker(false);
+    setSavingPlaceId(null);
+  };
+
+  const handleUnsave = () => {
+    if (!savingPlaceId) return;
+    setPlaces((prev) => prev.map((p) => (p.id === savingPlaceId ? { ...p, saved: false } : p)));
+    if (selectedPlace?.id === savingPlaceId) setSelectedPlace((prev) => (prev ? { ...prev, saved: false } : null));
+    setExploreSections((prev) => prev.map((section) => ({ ...section, cards: section.cards.map((c) => c.id === savingPlaceId ? { ...c, saved: false } : c) })));
+    setSavedCollectionsMap((prev) => { const next = { ...prev }; delete next[savingPlaceId]; return next; });
     setShowSavePicker(false);
     setSavingPlaceId(null);
   };
 
   const handleExploreCardSave = (cardId: string) => {
-    const card = exploreSections.flatMap((s) => s.cards).find((c) => c.id === cardId);
-    if (card?.saved) {
-      // Unsave: toggle off directly
-      setExploreSections((prev) => prev.map((section) => ({ ...section, cards: section.cards.map((c) => c.id === cardId ? { ...c, saved: false } : c) })));
-      toast.info(`Removed "${card.name}"`);
-    } else {
-      // Save: open the Save Place modal
-      setSavingPlaceId(cardId);
-      setShowSavePicker(true);
-    }
+    setSavingPlaceId(cardId);
+    setShowSavePicker(true);
   };
 
   const handleTrendingOnMaps = () => {
@@ -242,7 +244,9 @@ export default function ExploreMapScreen() {
 
           {showSavePicker && savingPlaceId && (
             <SaveDestinationPicker placeName={places.find((p) => p.id === savingPlaceId)?.name || exploreSections.flatMap((s) => s.cards).find((c) => c.id === savingPlaceId)?.name || ""}
-              onClose={() => { setShowSavePicker(false); setSavingPlaceId(null); }} onSave={handleSaveConfirm} collections={SAVED_COLLECTIONS} sessions={RALLY_SESSIONS} />
+              onClose={() => { setShowSavePicker(false); setSavingPlaceId(null); }} onSave={handleSaveConfirm} onUnsave={handleUnsave}
+              collections={SAVED_COLLECTIONS} sessions={RALLY_SESSIONS}
+              initialSavedCollectionIds={savedCollectionsMap[savingPlaceId] ?? []} />
           )}
 
           {/* Create Collection Modal */}

@@ -44,8 +44,8 @@ export default function RalliesSaves({ sessions }: Props) {
     return (
       <SessionDetail
         session={selectedSession}
-        onLike={toggleLike}
         onBack={() => { setSelectedSession(null); setLikeOverrides({}); }}
+        onLike={toggleLike}
       />
     );
   }
@@ -104,9 +104,11 @@ export default function RalliesSaves({ sessions }: Props) {
 function SessionDetail({
   session,
   onBack,
+  onLike,
 }: {
   session: RallySession;
   onBack: () => void;
+  onLike: (placeId: string, currentlyLiked: boolean) => void;
 }) {
   return (
     <div className="flex flex-col pb-[100px]">
@@ -141,6 +143,7 @@ function SessionDetail({
             key={place.id}
             place={place}
             members={session.members}
+            onLike={onLike}
           />
         ))}
 
@@ -160,11 +163,14 @@ function SessionDetail({
 function PlaceCard({
   place,
   members,
+  onLike,
 }: {
   place: RallyPlace;
   members: { id: string; name: string; avatar: string }[];
+  onLike: (placeId: string, currentlyLiked: boolean) => void;
 }) {
   const getMember = (id: string) => members.find((m) => m.id === id);
+  const isLiked = place.upvotes.includes(CURRENT_USER);
   const likeCount = place.upvotes.length;
 
   return (
@@ -196,8 +202,10 @@ function PlaceCard({
 
       {/* Likes + avatars */}
       <div className="flex items-center justify-between border-t border-[#eaeae9]/60 px-[10px] py-[8px]">
-        <button className="flex items-center gap-[4px] rounded-full bg-[#ff4466]/10 px-[10px] py-[5px] transition-all active:scale-95">
-          <Heart size={13} className="fill-[#ff4466] text-[#ff4466]" />
+        <button onClick={() => onLike(place.id, isLiked)}
+          className="flex items-center gap-[4px] rounded-full px-[10px] py-[5px] transition-all active:scale-95"
+          style={{ background: isLiked ? "rgba(255,68,102,0.15)" : "rgba(255,68,102,0.07)" }}>
+          <Heart size={13} className={isLiked ? "fill-[#ff4466] text-[#ff4466]" : "text-[#ff4466]"} />
           <span className="text-[11px] font-semibold text-[#ff4466]">{likeCount}</span>
         </button>
         {likeCount > 0 && (
